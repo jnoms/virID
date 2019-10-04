@@ -449,6 +449,41 @@ def merge_dataframes(DF1, DF2, origins):
     print(function_name + ': Finished.')
     return out_DF
 
+def read_contaminant_list(contaminant_file):
+    """
+    This function reads in a contaminant_file, which should consist of a single
+    column containing query_ID's.
+    """
+
+    # Check if contaminant file input or empty
+    if (contaminant_file == '') or (os.stat(contaminant_file).st_size == 0):
+        print("There are no input contaminants.")
+        return set()
+
+    contaminant_list = set()
+    with open(contaminant_file) as infile:
+        for line in infile:
+            if (len(line.split('/t')) > 1) or (len(line.split(',')) > 1):
+                raise ValueError("Contaminant file should be a single column of contaminating query_ID.")
+
+            contaminant_list.add(line.rstrip('\n'))
+
+    return contaminant_list
+
+def mark_contaminants(dataframe, contaminant_list):
+    """
+    This function checks each query_ID in the input dataframe to see if it is
+    in the contaminant_list (which is a set) and, if so, marks 1 on a new
+    column called 'possible_contaminant'.
+    """
+
+    # If there are no contaminants...
+    if contaminant_list == set():
+        return dataframe
+
+    out_df = dataframe.assign(possible_contaminant = [1 if query_ID in contaminant_list else 0 for query_ID in dataframe['query_ID']])
+
+    return out_df
 
 def write_output(output_DF, output_path, index=False):
     #State progress
@@ -542,6 +577,19 @@ def main():
         """,
     )
     parser.add_argument(
+        "-m",
+        "--contaminant_file",
+        type=str,
+        required=False,
+        default="",
+        help="""
+        Path to a contaminant file, which should consist of a single column.
+        The items in the column should all be query_ID's that are possible
+        contaminants. If this file is entered, these query_IDs will be marked
+        on the output dataframe.
+        """,
+    )
+    parser.add_argument(
         "-l",
         "--log_file",
         type=str,
@@ -559,6 +607,7 @@ def main():
     output_file = args.output_file
     contig_counts_file = args.contig_counts_file
     contig_cov_file = args.contig_cov_file
+    contaminant_file = args.contaminant_file
     log_file = args.log_file
 
     #---------------------------------------------------------------------------#
@@ -579,6 +628,11 @@ def main():
         contig_cov_file
         )
     MERGED_df = merge_dataframes(BLASTN_df, DIAMOND_df, ['BLASTN', 'DIAMOND'])
+
+    # if contaminant file input, mark the possible contaminants
+    if contaminant_file != "":
+        contaminant_list = read_contaminant_list(contaminant_file)
+        MERGED_df = mark_contaminants(MERGED_df, contaminant_list)
 
     #write outputs
     write_output(MERGED_df, output_file)

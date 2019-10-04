@@ -32,6 +32,16 @@ include blast_to_LCA as convert_blast from 'bin/modules/blast_to_LCA' params(
   taxid_blacklist: params.taxid_blacklist
   )
 
+include blast as blast_contaminant from 'bin/modules/blast' params(
+  blast_database: params.blast_contaminant_database,
+  blast_evalue: params.blast_contaminant_evalue,
+  blast_outfmt: params.blast_contaminant_outfmt,
+  blast_log_file: params.blast_contaminant_log_file,
+  blast_type: params.blast_contaminant_type,
+  blast_max_hsphs: params.blast_contaminant_max_hsphs,
+  blast_max_targets: params.blast_contaminant_max_targets
+  )
+
 include 'bin/modules/bwa_mem' params(params)
 
 include 'bin/modules/generate_output' params(params)
@@ -78,11 +88,15 @@ diamond(spades_assembly.out)
 blast(spades_assembly.out)
   .filter{ it[1].size()>0 } | convert_blast
 
+// Assembly - Assignment against contaminant database
+blast_contaminant(spades_assembly.out)
+
 // Merge channels and generate output
 generate_output_ch = convert_blast.out
                       .join(convert_diamond.out)
                       .join(spades_assembly.out)
                       .join(bwa_mem_contigs.out)
+                      .join(blast_contaminant.out)
 
 generate_output(generate_output_ch)
 
