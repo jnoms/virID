@@ -12,7 +12,7 @@ process generate_output {
   beforeScript "module load gcc conda2 ; source activate conda_py36"
 
   input:
-  set sampleID, blast_file, diamond_file, contigs, mapped_counts, mapped_bam, unmapped_bam
+  set sampleID, blast_file, diamond_file, contigs, mapped_counts, mapped_coverage, mapped_bam
 
   output:
   set sampleID, file("*tsv")
@@ -40,6 +40,7 @@ process generate_output {
   -f ${contigs} \
   -o ${sampleID}_merged.tsv \
   -c ${mapped_counts} \
+  -v ${mapped_coverage} \
   -l ${sampleID}_merge.log
   """
 }

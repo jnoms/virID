@@ -302,10 +302,32 @@ def add_read_counts_to_dataframe(input_DF, counts_dictionary):
     print(function_name + ': Finished.')
     return output_DF
 
-def add_unassigned_and_counts_to_dataframe(contig_taxonomy_file, contig_fasta, counts_file):
+def read_cov_file(input_data_file, sep = ' ', column_names = ''):
     """
-    The point of this function is to stitch together functions to add unassigned contigs, as well as contig counts,
-    to the input contig_taxonomy_file.
+    This function reads in a tab-delimited file and assigns the column names appropriately.
+    If column names are provided they're used, else it uses the first line of the file as the header.
+    column_names is a string that is a space-delimited list.
+    """
+
+    #State progress
+    function_name = inspect.stack()[0][3]
+    print(function_name + ': Reading the input file ' + input_data_file)
+
+    #Main
+    DF = pd.read_csv(input_data_file, engine = 'python', sep = sep, header = None).fillna(0)
+    DF.columns = column_names.split(" ")
+
+    # Remove the existing headers
+    DF = DF.iloc[1:]
+
+    print(function_name + ': Finished.')
+
+    return DF
+
+def format_taxonomy_inputs(contig_taxonomy_file, contig_fasta, counts_file, contig_cov_file=''):
+    """
+    The point of this function is to stitch together functions to add unassigned contigs, as well as contig counts
+    and contig coverage information, to the input contig_taxonomy_file.
 
     # Function dependencies:
     # - read_data_file
@@ -345,7 +367,14 @@ def add_unassigned_and_counts_to_dataframe(contig_taxonomy_file, contig_fasta, c
     #Add counts to the dataframe
     data_with_counts = add_read_counts_to_dataframe(data, counts_dictionary)
 
-    return data_with_counts
+    # If coverage info was added, add it to the dataframe
+    if contig_cov_file != '':
+        cov_df = read_cov_file(contig_cov_file, column_names = "query_ID average_fold covered_percent")
+        out_df = data_with_counts.merge(cov_df, how='outer')
+    else:
+        out_df = data_with_counts
+
+    return out_df
 
 
 def merge_dataframes(DF1, DF2, origins):
@@ -502,6 +531,17 @@ def main():
         """,
     )
     parser.add_argument(
+        "-v",
+        "--contig_cov_file",
+        type=str,
+        required=False,
+        default="",
+        help="""Path to the .txt (space-separated) that contains the coverage
+        information. Structure should be seq_ID, average_fold, covered_percent.
+        It should also have a header!
+        """,
+    )
+    parser.add_argument(
         "-l",
         "--log_file",
         type=str,
@@ -518,6 +558,7 @@ def main():
     contig_fasta_file = args.contig_fasta_file
     output_file = args.output_file
     contig_counts_file = args.contig_counts_file
+    contig_cov_file = args.contig_cov_file
     log_file = args.log_file
 
     #---------------------------------------------------------------------------#
@@ -525,8 +566,18 @@ def main():
     #---------------------------------------------------------------------------#
     write_to_log(log_file, "Starting pyscript.")
 
-    BLASTN_df = add_unassigned_and_counts_to_dataframe(BLASTN_contig_taxonomy_file, contig_fasta_file, contig_counts_file)
-    DIAMOND_df = add_unassigned_and_counts_to_dataframe(DIAMOND_contig_taxonomy_file, contig_fasta_file, contig_counts_file)
+    BLASTN_df = format_taxonomy_inputs(
+        BLASTN_contig_taxonomy_file,
+        contig_fasta_file,
+        contig_counts_file,
+        contig_cov_file
+        )
+    DIAMOND_df = format_taxonomy_inputs(
+        DIAMOND_contig_taxonomy_file,
+        contig_fasta_file,
+        contig_counts_file,
+        contig_cov_file
+        )
     MERGED_df = merge_dataframes(BLASTN_df, DIAMOND_df, ['BLASTN', 'DIAMOND'])
 
     #write outputs

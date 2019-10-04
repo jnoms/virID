@@ -17,7 +17,7 @@ process bwa_mem_contigs {
   set sampleID, contigs, paired_reads, unpaired_reads
 
   output:
-  set sampleID, file("*_mapped.counts"), file("*_mapped.bam*"), file("*_unmapped.bam*")
+  set sampleID, file("*_mapped.counts"), file("*_cov"), file("*.bam")
 
   script:
   """
@@ -25,10 +25,9 @@ process bwa_mem_contigs {
   -p $paired_reads \
   -u $unpaired_reads \
   -c $contigs \
-  -i ${sampleID}_index \
-  -m ${sampleID}_mapped.bam \
-  -U ${sampleID}_unmapped.bam \
   -o ${sampleID}_mapped.counts \
+  -v ${sampleID}_cov \
+  -b ${sampleID}.bam \
   -t ${task.cpus} \
   -l ${sampleID}_bwa.log \
   -e temp
