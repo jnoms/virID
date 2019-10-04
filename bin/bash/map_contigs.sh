@@ -5,7 +5,6 @@
 #SBATCH --mem=10GB
 #SBATCH -c 2
 
-
 module load gcc
 module load samtools
 module load bwa

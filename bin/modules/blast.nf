@@ -9,8 +9,8 @@ params.blast_log_file = ""
 params.blast_type = "megablast"
 params.blast_max_hsphs = 1
 params.blast_max_targets = 30
-params.blast_restrict_to_taxids = ""
-params.blast_ignore_taxids = ""
+params.blast_restrict_to_taxids = "no"
+params.blast_ignore_taxids = "no"
 
 //============================================================================//
 // Define process
@@ -26,7 +26,7 @@ process blast {
   set sampleID, file("*_blast.out")
 
   script:
-  if( (params.blast_restrict_to_taxids != "") && (params.blast_ignore_taxids != "") )
+  if( (params.blast_restrict_to_taxids != "no") && (params.blast_ignore_taxids != "no") )
     error "Only one of params.blast_restrict_to_taxids or \
     params.blast_ignore_taxids may be entered."
 

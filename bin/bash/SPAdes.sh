@@ -33,6 +33,7 @@ usage() {
         -g  <MEGAHIT_ALLOWED> Allow MEGAHIT to run for samples that fail to
                               assemble through SPAdes? Options are 'yes' or 'no'
                                                        Default: no
+        -L <MIN_LENGTH>       Mimimum contig length.   Default: 300
         "
 }
 
@@ -43,7 +44,7 @@ if [ $# -le 2 ] ; then
 fi
 
 #Setting input
-while getopts s:p:u:l:m:t:e:o:g: option ; do
+while getopts s:p:u:l:m:t:e:o:g:L: option ; do
         case "${option}"
         in
                 p) PAIRED_FILE=${OPTARG};;
@@ -56,6 +57,7 @@ while getopts s:p:u:l:m:t:e:o:g: option ; do
                 t) THREADS=${OPTARG};;
                 e) TEMP_DIR=${OPTARG};;
                 g) MEGAHIT_ALLOWED=${OPTARG};;
+                L) MIN_LENGTH=${OPTARG};;
         esac
 done
 
@@ -67,6 +69,7 @@ MEMORY=${MEMORY:-10}
 THREADS=${THREADS:-1}
 TEMP_DIR=${TEMP_DIR:-./SPAdes}
 MEGAHIT_ALLOWED=${MEGAHIT_ALLOWED:-no}
+MIN_LENGTH=${MIN_LENGTH:-300}
 
 #------------------------------------------------------------------------------#
 #Defining functions
@@ -168,10 +171,14 @@ assembly_with_SPAdes() {
 
   #Determining what output file is expected, and copying it over. Name varies if it's rnaspades.
   if [[ $SPADES_TYPE == "meta" ]] || [[ $SPADES_TYPE == "regular" ]] ; then
-    cp $TEMP_DIR/spades/scaffolds.fasta $OUTPUT_FILE_NAME
+    cp $TEMP_DIR/spades/scaffolds.fasta ${OUTPUT_FILE_NAME}.tmp
   elif [[ $SPADES_TYPE == "rna" ]] ; then
-    cp $TEMP_DIR/spades/transcripts.fasta $OUTPUT_FILE_NAME
+    cp $TEMP_DIR/spades/transcripts.fasta ${OUTPUT_FILE_NAME}.tmp
   fi
+
+  # Filter contigs by min-length
+  seqtk seq -L $MIN_LENGTH ${OUTPUT_FILE_NAME}.tmp > ${OUTPUT_FILE_NAME} \
+    && rm ${OUTPUT_FILE_NAME}.tmp
 
   #Making sure there is an output file. If not, run MEGAHIT if allowed. If not allowed, then exit script.
   if [[ ! -s $OUTPUT_FILE_NAME ]] && [[ $MEGAHIT_ALLOWED == "yes" ]] ; then

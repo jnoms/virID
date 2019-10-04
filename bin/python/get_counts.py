@@ -179,6 +179,8 @@ def add_read_counts_to_dataframe(input_DF, counts_dictionary):
 
     #For each query_ID, add counts to the output dictionary
     for query_ID in output_DF_query_IDs:
+        if not query_ID in counts_dictionary:
+            raise ValueError("Cannot find the query_ID {0} in the counts dict".format(query_ID))
         output_DF['read_count'][output_DF['query_ID'] == query_ID] = counts_dictionary[query_ID]
 
     print(function_name + ': Finished.')

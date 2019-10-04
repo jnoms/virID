@@ -18,7 +18,7 @@ process blast_to_LCA {
   beforeScript "module load gcc conda2 ; source activate conda_py36"
 
   input:
-  set sampleID, diamond_outfile
+  set sampleID, assignment_file
 
   output:
   set sampleID, file("*.tsv")
@@ -26,7 +26,7 @@ process blast_to_LCA {
   script:
   """
   python $workflow.projectDir/bin/python/get_LCA.py \
-  -i ${diamond_outfile} \
+  -i ${assignment_file} \
   -o ${sampleID}_${params.source}.tsv \
   -c "${params.column_names}" \
   -t ${params.taxonomy_column} \

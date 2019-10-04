@@ -104,12 +104,12 @@ def taxonID_passes_filtration(line, taxonomy_column_index, current_contents, bla
     if taxonID == "N/A":
         return False
 
-    # taxonID in blacklist
-    elif int(taxonID) in blacklist:
-        return False
-
     # taxonID is blank
     elif taxonID == '':
+        return False
+        
+    # taxonID in blacklist
+    elif int(taxonID) in blacklist:
         return False
 
     # taxonID can't be found in the taxonomy

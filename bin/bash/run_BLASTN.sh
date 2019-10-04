@@ -5,7 +5,6 @@
 #SBATCH --mem=10GB
 #SBATCH -c 2
 
-
 set -e
 
 #------------------------------------------------------------------------------#
@@ -72,6 +71,8 @@ OUT_FORMAT=${OUT_FORMAT:-'6 qseqid stitle sseqid staxid evalue bitscore pident l
 BLAST_TYPE=${BLAST_TYPE:-megablast}
 MAX_HSPS=${MAX_HSPS:-1}
 MAX_TARGETS=${MAX_TARGETS:-30}
+RESTRICT_TO_TAXIDS=${RESTRICT_TO_TAXIDS:-no}
+IGNORE_TAXIDS=${IGNORE_TAXIDS:-no}
 
 ###############################
 #Defining functions
@@ -122,7 +123,7 @@ run_BLASTN() {
   fi
 
   #Call BLASTN
-  if [[ $RESTRICT_TO_TAXIDS == '' ]] && [[ $IGNORE_TAXIDS == '' ]] ; then
+  if [[ $RESTRICT_TO_TAXIDS == 'no' ]] && [[ $IGNORE_TAXIDS == 'no' ]] ; then
     blastn \
     -query $QUERY \
     -db $DATABASE \
@@ -133,7 +134,7 @@ run_BLASTN() {
     -task $BLAST_TYPE \
     -max_hsps $MAX_HSPS \
     -max_target_seqs $MAX_TARGETS
-  elif [[ $RESTRICT_TO_TAXIDS != '' ]] && [[ $IGNORE_TAXIDS == '' ]] ; then
+  elif [[ $RESTRICT_TO_TAXIDS != 'no' ]] && [[ $IGNORE_TAXIDS == 'no' ]] ; then
     blastn \
     -query $QUERY \
     -db $DATABASE \
@@ -145,7 +146,7 @@ run_BLASTN() {
     -max_hsps $MAX_HSPS \
     -max_target_seqs $MAX_TARGETS \
     -taxids $RESTRICT_TO_TAXIDS
-  elif [[ $RESTRICT_TO_TAXIDS == '' ]] && [[ $IGNORE_TAXIDS != '' ]] ; then
+  elif [[ $RESTRICT_TO_TAXIDS == 'no' ]] && [[ $IGNORE_TAXIDS != 'no' ]] ; then
     blastn \
     -query $QUERY \
     -db $DATABASE \
@@ -157,6 +158,9 @@ run_BLASTN() {
     -max_hsps $MAX_HSPS \
     -max_target_seqs $MAX_TARGETS \
     -negative_taxids $IGNORE_TAXIDS
+  else
+    write_log "run_BLASTN.bash, $SAMPLE: Cannot specify both RESTRICT_TO_TAXIDS and IGNORE_TAXIDS" $LOG_FILE "error"
+    exit 1
   fi
 
   #Check that the output file exists. It no matches it should exist, though it will be empty.
