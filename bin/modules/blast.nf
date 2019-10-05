@@ -19,6 +19,7 @@ params.out_dir = 'output'
 process blast {
   tag "$sampleID"
   publishDir "$params.out_dir/blast", mode: "copy"
+  beforeScript "module load gcc conda2"
 
   input:
   set sampleID, sequences

@@ -8,8 +8,7 @@ params.out_dir = "output"
 //============================================================================//
 process process_read_pairs {
   tag "$sampleID"
-  beforeScript "module load gcc conda2 ; source activate conda_py36"
-
+  beforeScript "module load gcc conda2"
   publishDir "$params.out_dir/split_reads", mode: "copy"
 
   input:

@@ -15,7 +15,7 @@ params.score_column = "bitscore"
 process blast_to_LCA {
   tag "$sampleID"
   publishDir "${params.out_dir}/${params.source}", mode: "copy"
-  beforeScript "module load gcc conda2 ; source activate conda_py36"
+  beforeScript "module load gcc conda2"
 
   input:
   set sampleID, assignment_file

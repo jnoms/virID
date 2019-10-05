@@ -9,7 +9,7 @@ params.out_dir = "output"
 process generate_output {
   tag "$sampleID"
   publishDir "$params.out_dir/results", mode: "copy"
-  beforeScript "module load gcc conda2 ; source activate conda_py36"
+  beforeScript "module load gcc conda2"
 
   input:
   set sampleID, blast_file, diamond_file, contigs, mapped_counts, mapped_coverage, mapped_bam, contaminant

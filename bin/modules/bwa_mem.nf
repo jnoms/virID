@@ -9,8 +9,7 @@ params.out_dir = "output"
 //============================================================================//
 process bwa_mem_contigs {
   tag "$sampleID"
-  beforeScript "module load gcc bwa samtools"
-
+  beforeScript "module load gcc conda2"
   publishDir "$params.out_dir/read_mapping", mode: "copy"
 
   input:

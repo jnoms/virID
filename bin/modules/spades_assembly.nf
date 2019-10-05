@@ -11,6 +11,7 @@ params.out_dir = 'output'
 process spades_assembly {
   tag "$sampleID"
   publishDir "$params.out_dir/contigs", mode: "copy"
+  beforeScript "module load gcc conda2"
 
   input:
   set sampleID, paired_reads, unpaired_reads
