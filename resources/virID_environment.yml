@@ -18,7 +18,7 @@ dependencies:
   - certifi=2019.9.11=py36_0
   - curl=7.65.3=hbc83047_0
   - dbus=1.13.6=h746ee38_0
-  - diamond=0.9.14=hd28b015_2
+  - diamond=0.9.26
   - ete3=3.1.1=py_1
   - expat=2.2.6=he6710b0_0
   - fontconfig=2.13.1=he4413a7_1000
