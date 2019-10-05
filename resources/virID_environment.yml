@@ -111,4 +111,6 @@ dependencies:
   - zlib=1.2.11=h7b6447c_3
   - pip:
     - anytree==2.7.1
+    - argparse==1.4.0
     - fastcache==1.1.0
+    - pathlib==1.0.1
