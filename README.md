@@ -75,5 +75,12 @@ In general, all input values and parameters for this script must be entered in t
 **params.blast_contaminant_max_hsphs:** This is the maximum number of alignments per query-subject pair. Recommend setting at 1.  
 **params.blast_contaminant_max_targets:** This is the maximum number of separate hits that are allowed for each query. Because this is a screen, and we only need to know if a query has at least one assignment in the contaminant database, I recommend setting at 1.  
 
+## Configure executor and resources
+The Nextflow executor, explained [here](https://www.nextflow.io/docs/latest/executor.html), dictates how Nextflow will run each process. virID is currently set up to use a SLURM cluster, but you can easily change this by altering the executor in nextflow.config. Nextflow takes care of all cluster submissions and automatically parallelizes everything.
+
+I have set up virID with *dynamic resources!* Essentially, each process will request a different amount of resources depending on the size of the input files. In addition, upon failure the process will restart with twice the resources.
+
 ## Description of outfiles
 *in progress*
+
+
