@@ -18,7 +18,7 @@ While this pipeline is organized in Nextflow, every process is capabale of being
 `conda install nextflow=19.07.0`
 
 2. Download dependencies. I recommend generating a conda environment using virID_environment.yml, available in this github.
-`conda env create -f virID_environment.yml`. This environment will contain all tools and packages required for running this pipeline.
+`conda env create -f virID_environment.yml`. This environment will contain all tools and packages required for running this pipeline. You can test that everything works independently by directly calling each shell and python script.
 
 3. Configure the databases:
 This workflow requires three databases: 1) A DIAMOND database for search, 2) A nucleotide blast database for search, and 3) a contaminant nucleotide blast database (virID v2.0+).
