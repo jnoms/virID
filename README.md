@@ -13,8 +13,7 @@ The purpose of virID is to assemble and classify in next-generation sequencing d
 
 While this pipeline is organized in Nextflow, every process is capabale of being used and tested independently of Nextflow as a bash or python script. Execute any python script (with -h) or bash script (without arguments) for detailed instructions on how to run them.
 
-## Preparing virID
-### Prepare programs and databases
+## Prepare programs and databases
 1. Download Nextflow version 19.07.0. I recommend using the [Conda package manager](https://docs.conda.io/en/latest/miniconda.html).
 `conda install nextflow=19.07.0`
 
@@ -31,7 +30,7 @@ For blast seach, you must download the blast v5 nucleotide database using the sa
 A nucleotide contaminant blast database is included with this pipeline. This database was generated from [Univec_ core](https://www.ncbi.nlm.nih.gov/tools/vecscreen/univec/?), which is a nonredundant list of common laboratory cloning vectors. I have also added some additional vectors to this database.
 
 
-### Setting inputs and parameters
+## Setting inputs and parameters
 In general, all input values and parameters for this script must be entered in the nextflow.config file.  
 
 #### Input and output
@@ -75,3 +74,6 @@ In general, all input values and parameters for this script must be entered in t
 **params.blast_contaminant_type:** The -task blast parameter. I recommend megablast or else it will be way too slow, and unnecessary.  
 **params.blast_contaminant_max_hsphs:** This is the maximum number of alignments per query-subject pair. Recommend setting at 1.  
 **params.blast_contaminant_max_targets:** This is the maximum number of separate hits that are allowed for each query. Because this is a screen, and we only need to know if a query has at least one assignment in the contaminant database, I recommend setting at 1.  
+
+## Description of outfiles
+*in progress*
