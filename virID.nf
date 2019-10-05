@@ -39,7 +39,8 @@ include blast as blast_contaminant from 'bin/modules/blast' params(
   blast_log_file: params.blast_contaminant_log_file,
   blast_type: params.blast_contaminant_type,
   blast_max_hsphs: params.blast_contaminant_max_hsphs,
-  blast_max_targets: params.blast_contaminant_max_targets
+  blast_max_targets: params.blast_contaminant_max_targets,
+  out_dir: params.out_dir
   )
 
 include 'bin/modules/bwa_mem' params(params)

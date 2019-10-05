@@ -11,6 +11,7 @@ params.blast_max_hsphs = 1
 params.blast_max_targets = 30
 params.blast_restrict_to_taxids = "no"
 params.blast_ignore_taxids = "no"
+params.out_dir = 'output'
 
 //============================================================================//
 // Define process
