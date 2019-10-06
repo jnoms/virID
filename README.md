@@ -147,4 +147,5 @@ Samtools
 bbtools  
 Blast+  
 DIAMOND  
-Ete3  
+ETE3  
+Anytree
