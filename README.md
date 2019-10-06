@@ -106,11 +106,11 @@ Column names include:
 `query_ID:`               Contig name  
 `seq_title:`              Title of hits (comma-delimited list)  
 `seq_ID:`                 Acession IDs of hits (comma-delimited list)  
-`taxonID:`                taxonID of hits  
-`evalue:`                 Evalues of hists  
-`bitscore:`               Bitscores of hits  
-`pident:`                 Percent identity of each hit  
-`length:`                 Length of the alignment for each hit  
+`taxonID:`                taxonID of hits (comma-delimited list)  
+`evalue:`                 Evalues of hists (comma-delimited list)  
+`bitscore:`               Bitscores of hits (comma-delimited list)  
+`pident:`                 Percent identity of each hit (comma-delimited list)  
+`length:`                 Length of the alignment for each hit (comma-delimited list)  
 `LCA_taxonID:`            The taxonID of the LCA of each hit.  
 `superkingdom:`           LCA superkingdom  
 `kingdom:`                LCA kingdom  
