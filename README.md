@@ -1,6 +1,8 @@
 # virID
 Viral Identification and Discovery - A viral characterization pipeline built in [Nextflow](https://www.nextflow.io/).
 
+![Pipeline schematic](/resources/images/2019_10_06_virID_workflow.jpg)
+
 Quickstart
 ----
 The only software requirements for running this pipeline is the [Conda](https://docs.conda.io/en/latest/miniconda.html) package manager and [Nextflow](https://www.nextflow.io/) version 19.07.0. When the pipeline is first initiated, Nextflow will create a conda virtual environment containing all required additional software, and all processess will run in this in virtual environment. The only other things you need to take care of are making the DIAMOND and megablast databases, as well as making any changes to the executor depending on the cluster infrastructure you plan to run this pipeline on. There are more detailed descriptions of these steps below.
