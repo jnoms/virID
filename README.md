@@ -42,7 +42,7 @@ diamond makedb \
 ```
 
 For blast seach, you must download the blast v5 nucleotide database using the same version of blast+ used in this script and installed via the conda .yml file. There is sometimes a bug where this database will not work - you may have to delete the last line of nt_v5.nal that specifies a volume of the blast database that is not actually present.  
-`update_blastdb.pl --blastdb_version 5 nr_v5 --decompress`
+`update_blastdb.pl --blastdb_version 5 nt_v5 --decompress`
 
 A nucleotide contaminant blast database is included with this pipeline. This database was generated from [Univec_ core](https://www.ncbi.nlm.nih.gov/tools/vecscreen/univec/?), which is a nonredundant list of common laboratory cloning vectors. I have also added some additional vectors to this database.
 
