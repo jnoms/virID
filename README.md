@@ -133,7 +133,7 @@ Column names include:
 `covered_percent:`        Percentage of the contig covered by input reads.  
 `potential_contaminant:`  1 if assigned to the contaminant vector database, 0 otherwise. (Column excluded if no contaminants found).  
 
-**${sampleID}_blast_counts.tsv and ${sampleID}_diamond_counts.tsv:** Here, the read_count for each contig is distributed to each taxonomic level of the LCA of that contig. For example, if a contig has an LCA of sk__superkingdom/k__kingdom/f__polyomaviridae and has a read_count of 10, 10 reads are assigned to each f__polyomaviridae, k__kingdom, and sk__superkingdom. These outputs detail the results based on the blast or DIAMOND assignments, respectively. The columns include:  
+**${sampleID}_blast_counts.tsv and ${sampleID}_diamond_counts.tsv:** Here, the read_count for each contig is distributed to each taxonomic level of the LCA of that contig. For example, if a contig has an LCA of sk__superkingdom/k__kingdom/f__polyomaviridae and has a read_count of 10, 10 reads are assigned to each f__polyomaviridae, k__kingdom, and sk__superkingdom. These outputs detail the results based on the blast or DIAMOND assignments, respectively. **Note that if a contig is assigned by megablast to the vector contaminate database the counts from that contig will NOT be included in this output.** The columns include:  
 `taxonID`      The taxonID  
 `lineage`      The name of each taxon in the lineage of the taxonID.  
 `superkingdom` The superkingdom of the taxonID  
