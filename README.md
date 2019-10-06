@@ -3,7 +3,7 @@ Viral Identification and Discovery - A viral characterization pipeline built in 
 
 Quickstart
 ----
-The only software requirements for running this pipeline is the Conda package manager and Nextflow version 19.07.0. When the pipeline is first initiated, Nextflow will create a conda virtual environment containing all required additional software, and all processess will run this in virtual environment. The only other things you need to take care of are making the DIAMOND and megablast databases, as well as making any changes to the executor depending on the cluster infrastructure you plan to run this pipeline on. There are more detailed descriptions of these steps below.
+The only software requirements for running this pipeline is the [Conda](https://docs.conda.io/en/latest/miniconda.html) package manager and [Nextflow](https://www.nextflow.io/) version 19.07.0. When the pipeline is first initiated, Nextflow will create a conda virtual environment containing all required additional software, and all processess will run in this in virtual environment. The only other things you need to take care of are making the DIAMOND and megablast databases, as well as making any changes to the executor depending on the cluster infrastructure you plan to run this pipeline on. There are more detailed descriptions of these steps below.
 
 1. Download Nextflow version 19.07.0  
 `conda install nextflow=19.07.0`  
@@ -18,14 +18,14 @@ The only software requirements for running this pipeline is the Conda package ma
 
 
 ## Description
-The purpose of virID is to assemble and classify in next-generation sequencing data. The steps of this pipeline are as follows:
-1) Input fastqs are split into a paired file containing interleaved paired reads, and an unpaired file containing unpaired reads.
+The purpose of virID is to assemble and classify microorganisms present in next-generation sequencing data. The steps of this pipeline are as follows:
+1) Input fastqs are split into a paired file containing interleaved paired reads, and an unpaired file containing unpaired reads. Thus, each sample should be added to this pipeline as a single fastq containing both paired and unpaired reads.
 2) Reads are assembled with the SPAdes assembler - SPAdes, metaSPAdes, or rnaSPAdes can be specified.
 3) bwa mem is used to map reads back to contigs.
 4) The DIAMOND and megablast aligners are used for taxonomic assignment of assembled contigs.
 5) DIAMOND and megablast output files are translated to a taxonomic output following last-common-ancestor (LCA) calculation for each query contig.
 6) (virID v2.0+) Contigs are queried with megablast against a nonredundant database of common cloning vectors. Contigs that are assigned to these sequences are flagged.
-6) DIAMOND and megablast taxonomic outputs and contig count information are merged to a comprehensive taxonomic output, and unassigned contigs are flagged. Counts outputs, one for each DIAMOND and megablast, are generated which display the counts at every taxonomic level.
+6) DIAMOND and megablast taxonomic outputs and contig count information are merged to a comprehensive taxonomic output, and unassigned contigs are flagged. Counts outputs, one for each DIAMOND and megablast, are generated which display the counts at every taxonomic level. There is a section below that describes the output files in more detail.
 
 While this pipeline is organized in Nextflow, every process is capabale of being used and tested independently of Nextflow as a bash or python script. Execute any python script (with -h) or bash script (without arguments) for detailed instructions on how to run them.
 
@@ -100,7 +100,7 @@ In general, all input values and parameters for this script must be entered in t
 **params.blast_contaminant_max_hsphs:** This is the maximum number of alignments per query-subject pair. Recommend setting at 1.  
 **params.blast_contaminant_max_targets:** This is the maximum number of separate hits that are allowed for each query. Because this is a screen, and we only need to know if a query has at least one assignment in the contaminant database, I recommend setting at 1.  
 
-## Description of outfiles
+## Description of output files
 1. Each process will copy its outfiles to params.out_dir. You can disable this setting my removing the `publishDir` line from each module file.  
 2. The `our_dir/results` dir will contain the main pipeline outputs:
 
@@ -128,14 +128,14 @@ Column names include:
 `read_count:`             Number of input reads that map to the contig.  
 `average_fold:`           Average fold coverage of the input reads on the contig.  
 `covered_percent:`        Percentage of the contig covered by input reads.  
-`potential_contaminant:`  1 if assigned to the contaminant vector database, 0 otherwise. (Column excluded if no contaminants found)  
+`potential_contaminant:`  1 if assigned to the contaminant vector database, 0 otherwise. (Column excluded if no contaminants found).  
 
 **${sampleID}_blast_counts.tsv and ${sampleID}_diamond_counts.tsv:** Here, the read_count for each contig is distributed to each taxonomic level of the LCA of that contig. For example, if a contig has an LCA of sk__superkingdom/k__kingdom/f__polyomaviridae and has a read_count of 10, 10 reads are assigned to each f__polyomaviridae, k__kingdom, and sk__superkingdom. These outputs detail the results based on the blast or DIAMOND assignments, respectively. The columns include:  
-`taxonID`      The taxonID
-`lineage`      The name of each taxon in the lineage of the taxonID.
-`superkingdom` The superkingdom of the taxonID
-`taxon`        The name of the taxon
-`level`        The level of the taxon (i.e. kingdom, or family, etc)
-`count`        The total number of reads assigned to that taxon.
+`taxonID`      The taxonID  
+`lineage`      The name of each taxon in the lineage of the taxonID.  
+`superkingdom` The superkingdom of the taxonID  
+`taxon`        The name of the taxon  
+`level`        The level of the taxon (i.e. kingdom, or family, etc)  
+`count`        The total number of reads assigned to that taxon.  
 
 
