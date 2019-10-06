@@ -16,7 +16,7 @@ The only software requirements for running this pipeline is the [Conda](https://
 
 4. Change executor in `nextflow.config` if not using a SLURM cluster.
 
-4. `nextflow run jnoms/virID --reads "path/to/reads/*fastq" --out_dir "path/to/output/dir"`
+5. `nextflow run virID.nf --reads "path/to/reads/*fastq" --out_dir "path/to/output/dir"`. If you need to restart the pipeline for any reason, add the `-resume` switch and any finished processess won't be rerun!
 
 
 ## Description
