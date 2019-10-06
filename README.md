@@ -10,9 +10,9 @@ The only software requirements for running this pipeline is the [Conda](https://
 
 2. Prepare DIAMOND and megablast databases. 
 
-3. Configure input parameters in nextflow.config.  
+3. Configure input parameters in `nextflow.config`.  
 
-4. Change executor in nextflow.config if not using a SLURM cluster.
+4. Change executor in `nextflow.config` if not using a SLURM cluster.
 
 4. `nextflow run jnoms/virID --reads "path/to/reads/*fastq" --out_dir "path/to/output/dir"`
 
@@ -47,16 +47,16 @@ For blast seach, you must download the blast v5 nucleotide database using the sa
 A nucleotide contaminant blast database is included with this pipeline. This database was generated from [Univec_ core](https://www.ncbi.nlm.nih.gov/tools/vecscreen/univec/?), which is a nonredundant list of common laboratory cloning vectors. I have also added some additional vectors to this database.
 
 ## Configure executor and resources
-**Executor:** The Nextflow executor, explained [here](https://www.nextflow.io/docs/latest/executor.html), dictates how Nextflow will run each process. virID is currently set up to use a SLURM cluster, but you can easily change this by altering the executor in nextflow.config. Nextflow takes care of all cluster submissions and automatically parallelizes everything. If you are using a different cluster infrastructure, change the "executor" value from 'slurm' to the appropriate infrastructure. In addition, each nextflow module (in bin/modules/) contains a "beforeScript" line that dictates code to run prior to running the module. Here, I have added "module load gcc conda2", which loads the GCC compiler and the conda package manager in my slurm cluster. If this is not relevant to you, remove this code.
+**Executor:** The Nextflow executor, explained [here](https://www.nextflow.io/docs/latest/executor.html), dictates how Nextflow will run each process. virID is currently set up to use a SLURM cluster, but you can easily change this by altering the executor in `nextflow.config`. Nextflow takes care of all cluster submissions and automatically parallelizes everything. If you are using a different cluster infrastructure, change the "executor" value from 'slurm' to the appropriate infrastructure. In addition, each nextflow module (in `bin/modules/`) contains a `beforeScript` line that dictates code to run prior to running the module. Here, I have added `module load gcc conda2`, which loads the GCC compiler and the conda package manager in my slurm cluster. If this is not relevant to you, remove this code.
 
-**Resources:** I have set up virID with *dynamic resources!* Each process will request a different amount of resources depending on the size of the input files. In addition, upon failure the process will restart with increased resources, and will restart a up to three times (configurable with the maxRetries setting in nextflow.config).
+**Resources:** I have set up virID with *dynamic resources!* Each process will request a different amount of resources depending on the size of the input files. In addition, upon failure the process will restart with increased resources, and will restart a up to three times (configurable with the `maxRetries` setting in `nextflow.config`).
 
 ## Inputs and parameters
-In general, all input values and parameters for this script must be entered in the nextflow.config file.  
+In general, all input values and parameters for this script must be entered in the `nextflow.config` file. Most of the parameters are already filled out for you, but you may want to change some of them.  
 
 #### Input and output
 **params.out_dir:** Desired output directory.  
-**params.reads:** A glob detailing the location of reads to be processed through this pipeline. NOTE, input reads for one sample should be in one fastq. This script will process the fastq into an interleaved (paired) fastq and a separate unpaired fastq. For example, "raw_reads/*fastq" is appropriate. Make sure to wrap in quotes!  
+**params.reads:** A glob detailing the location of reads to be processed through this pipeline. NOTE, input reads for one sample should be in one fastq. This script will process the fastq into an interleaved (paired) fastq and a separate unpaired fastq. *There should be a single fastq for each input sample.* A value of `"raw_reads/*fastq"` is an appropriate input for this parameter, and will select as input all fastq files in the directory `raw_reads`. Make sure to wrap in quotes!  
 
 #### SPAdes
 **params.spades_type:** Options are 'meta', 'rna', and 'regular'. This specifies whether to use metaspades.py, rnaspades.py, or spades.py.  
@@ -134,4 +134,15 @@ Column names include:
 `level`        The level of the taxon (i.e. kingdom, or family, etc)  
 `count`        The total number of reads assigned to that taxon.  
 
+## Citation
+The paper you should cite when using this program is in progress. For now, please cite this repository.
 
+This pipeline is nothing without the excellent programs virID makes use of. Please cite these programs in addition to virID if you use virID in any publication! I'll list them below, in no particular order:  
+SPAdes  
+seqtk  
+BWA  
+Samtools  
+bbtools  
+Blast+  
+DIAMOND  
+Ete3  
