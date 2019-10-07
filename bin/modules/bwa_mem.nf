@@ -2,7 +2,7 @@
 // Default params
 //============================================================================//
 params.out_dir = "output"
-params.log_file = "${workflow.launchDir}/${params.out_dir}/results/virID.log"
+params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
 
 //============================================================================//
 // Define process

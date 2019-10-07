@@ -2,6 +2,9 @@
 
 nextflow.preview.dsl=2
 
+// Log file must be set here to access laucnhDir information
+params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
+
 //============================================================================//
 // Set up modules
 //============================================================================//

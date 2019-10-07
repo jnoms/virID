@@ -6,7 +6,7 @@ params.diamond_outfmt = "6 qseqid stitle sseqid staxids evalue bitscore pident l
 params.temp_dir = "temp"
 params.diamond_evalue = "10"
 params.out_dir = "output"
-params.log_file = "${workflow.launchDir}/${params.out_dir}/results/virID.log"
+params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
 
 //============================================================================//
 // Define process

@@ -5,7 +5,7 @@ params.spades_type = 'rna'
 params.temp_dir = 'temp'
 params.out_dir = 'output'
 params.spades_min_length = 300
-params.log_file = "${workflow.launchDir}/${params.out_dir}/results/virID.log"
+params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
 
 //============================================================================//
 // Define process
