@@ -6,6 +6,7 @@ params.diamond_outfmt = "6 qseqid stitle sseqid staxids evalue bitscore pident l
 params.temp_dir = "temp"
 params.diamond_evalue = "10"
 params.out_dir = "output"
+params.log_file = "${launchDir}/${params.out_dir}/results/virID.log"
 
 //============================================================================//
 // Define process
@@ -31,6 +32,7 @@ process diamond {
   -t ${params.temp_dir} \
   -e ${params.diamond_evalue} \
   -f "${params.diamond_outfmt}" \
-  -l ${sampleID}_diamond.log
+  -l ${params.log_file} \
+  -s ${sampleID}
   """
 }

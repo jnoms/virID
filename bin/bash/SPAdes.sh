@@ -22,7 +22,7 @@ usage() {
         -u  <UNPAIRED_FILE>    Path to file. Must specify PAIRED_FILE,
                                UNPAIRED_FILE, or both.
         -o  <OUTPUT_FILE_NAME> Path to and name of the output file. Recommend
-                               something like SAMPLE'_congtigs.fasta.'
+                               something like SAMPLE'_contigs.fasta.'
 
         Optional:
         -s  <SPADES_TYPE>     meta, rna, or regular.   Default: rna
@@ -30,10 +30,8 @@ usage() {
         -m  <MEMORY>          Number of GB of memory.  Default: 10
         -t  <THREADS>         Number of threads        Default: 1
         -e  <TEMP_DIR>        TEMP directory.          Default: ./SPAdes
-        -g  <MEGAHIT_ALLOWED> Allow MEGAHIT to run for samples that fail to
-                              assemble through SPAdes? Options are 'yes' or 'no'
-                                                       Default: no
-        -L <MIN_LENGTH>       Mimimum contig length.   Default: 300
+        -L  <MIN_LENGTH>      Mimimum contig length.   Default: 300
+        -n  <SAMPLE_ID>       Name of the sample.      Default: basename PAIRED_FILE
         "
 }
 
@@ -44,7 +42,7 @@ if [ $# -le 2 ] ; then
 fi
 
 #Setting input
-while getopts s:p:u:l:m:t:e:o:g:L: option ; do
+while getopts s:p:u:l:m:t:e:o:L:n: option ; do
         case "${option}"
         in
                 p) PAIRED_FILE=${OPTARG};;
@@ -56,8 +54,8 @@ while getopts s:p:u:l:m:t:e:o:g:L: option ; do
                 m) MEMORY=${OPTARG};;
                 t) THREADS=${OPTARG};;
                 e) TEMP_DIR=${OPTARG};;
-                g) MEGAHIT_ALLOWED=${OPTARG};;
                 L) MIN_LENGTH=${OPTARG};;
+                n) SAMPLE_ID=${OPTARG};;
         esac
 done
 
@@ -70,67 +68,70 @@ THREADS=${THREADS:-1}
 TEMP_DIR=${TEMP_DIR:-./SPAdes}
 MEGAHIT_ALLOWED=${MEGAHIT_ALLOWED:-no}
 MIN_LENGTH=${MIN_LENGTH:-300}
+SAMPLE_ID=${SAMPLE_ID:-$(basename $PAIRED_FILE)}
 
 #------------------------------------------------------------------------------#
 #Defining functions
 #------------------------------------------------------------------------------#
 write_log() {
-  #The purpose of this function is to echo a message to stdout, and write that message to a log file with the date. This function works as follows:
-  #write_log $1="message" $2=<log_file> $3="error"(optional)
-  local MESSAGE=$1
-  local LOG_FILE=$2
-  local ERROR_STATUS=$3
+  # The purpose of this function is to append to a log, which is CSV output.
+  # Structure is sampleID, file_name/process, message, error(0 or 1). Log file
+  # is optional - if not input, will print to screen.
 
-  # Print message to screen
-  echo "$MESSAGE"
+  # Usage:
+  # write_log <sampleID> <message> <error - 0 or 1> <log_file>
+  sampleID=$1
+  FILE_NAME=$(basename $0)
+  message=$2
+  error=$3
+  log_file=$4
+
+  OUTPUT="${sampleID},${FILE_NAME},${message},${error}"
+  echo $OUTPUT
   date
 
-  # If there is no log file, we're done here
-  if [[ $LOG_FILE == '' ]] ; then
+  # If no log file, leave
+  if [[ $log_file == '' ]] ; then
     return
   fi
 
-  # Print message to log file
-  echo "$MESSAGE" >> $LOG_FILE
-  date >> $LOG_FILE
-
-  # If this is an error, write to error log file.
-  if [[ $ERROR_STATUS == "error" ]] ; then
-    echo "$MESSAGE" >> $LOG_FILE'_error'
-    date >> $LOG_FILE'_error'
-  fi
+  # Write to log
+  mkdir -p $(dirname $log_file)
+  echo $OUTPUT >> $log_file
 }
 
 assembly_with_SPAdes() {
   #Make sure argument values are valid
   if [[ $SPADES_TYPE != "meta" && $SPADES_TYPE != "rna" && $SPADES_TYPE != "regular" ]] ; then
-    write_log "assembly_with_SPAdes.bash, $SAMPLE: SPADES_TYPE is set to $SPADES_TYPE, but must be 'meta', 'rna', or 'regular'." $LOG_FILE "error"
+    write_log \
+    $SAMPLE_ID \
+    "SPADES_TYPE is set to $SPADES_TYPE, but must be 'meta', 'rna', or 'regular'." \
+    1 \
+    $LOG_FILE
     exit 1
   fi
 
   #Make sure all directories that are needed are made
-  mkdir -p $(dirname $LOG_FILE )
   mkdir -p $TEMP_DIR
   mkdir -p $(dirname $OUTPUT_FILE_NAME)
 
-  #Get sample name
-  local SAMPLE=$( basename $PAIRED_FILE )
-
   #Updating log
-  write_log "assembly_with_SPAdes.bash, $SAMPLE: Starting assembly_with_SPAdes script." $LOG_FILE
+  write_log \
+  $SAMPLE_ID \
+  "Starting assembly_with_SPAdes script." \
+  0
 
   #check what combination of files exists, to define which combination
   if [[ -s $PAIRED_FILE ]] && [[ -s $UNPAIRED_FILE ]] ; then
     local PAIRING=BOTH
-    write_log "assembly_with_SPAdes.bash, $SAMPLE: Found both a paired and unpaired file." $LOG_FILE
+    write_log $SAMPLE_ID "Found both a paired and unpaied file." 0
   elif [[ -s $PAIRED_FILE ]] && [[ ! -s $UNPAIRED_FILE ]] ; then
     local PAIRING=PAIRED
-    write_log "assembly_with_SPAdes.bash, $SAMPLE: Found only a PAIRED file." $LOG_FILE
+    write_log $SAMPLE_ID "Found Only a paired file." 0
   elif [[ ! -s $PAIRED_FILE ]] && [[ -s $UNPAIRED_FILE ]] ; then
-    local PAIRING=UNPAIRED
-    write_log "assembly_with_SPAdes.bash, $SAMPLE: Found only an UPAIRED file." $LOG_FILE
+    local PAIRING=UNPAIRED write_log $SAMPLE_ID "Found only an unpaied file." 0
   elif [[ ! -s $PAIRED_FILE ]] && [[ ! -s $UNPAIRED_FILE ]] ; then
-    write_log "assembly_with_SPAdes.bash, $SAMPLE, ERROR: Cannot find PAIRED or UNPAIRED file. This should be impossible." $LOG_FILE "error"
+    write_log $SAMPLE_ID "Cannot find either a paired or unpaired file!" 1 $LOG_FILE
     exit 1
   fi
 
@@ -142,7 +143,8 @@ assembly_with_SPAdes() {
   elif [[ $SPADES_TYPE == "regular" ]] ; then
     local SPADES=spades.py
   fi
-  write_log "assembly_with_SPAdes.bash, $SAMPLE: SPAdes type is set as $SPADES_TYPE, so running $SPADES" $LOG_FILE
+
+  write_log $SAMPLE_ID "SPAdes type is set as $SPADES_TYPE, so running $SPADES." 0
 
   #Running SPAdes
   if [ $PAIRING == "BOTH" ] ; then
@@ -176,98 +178,26 @@ assembly_with_SPAdes() {
     cp $TEMP_DIR/spades/transcripts.fasta ${OUTPUT_FILE_NAME}.tmp
   fi
 
+  # Make sure an outfile was produced by SPAdes. If there is not, this may be
+  # a true failure of SPAdes or SPAdes messed up.
+  if [[ ! -f ${OUTPUT_FILE_NAME}.tmp ]] ; then
+    write_log $SAMPLE_ID "Cannot find the SPAdes output file ${OUTPUT_FILE_NAME}.tmp!\
+     Spades may have failed, or this might be a real inability to make contigs." 1 $LOG_FILE
+    exit 1
+  fi
+
   # Filter contigs by min-length
   seqtk seq -L $MIN_LENGTH ${OUTPUT_FILE_NAME}.tmp > ${OUTPUT_FILE_NAME} \
     && rm ${OUTPUT_FILE_NAME}.tmp
 
-  #Making sure there is an output file. If not, run MEGAHIT if allowed. If not allowed, then exit script.
-  if [[ ! -s $OUTPUT_FILE_NAME ]] && [[ $MEGAHIT_ALLOWED == "yes" ]] ; then
-      write_log "assembly_with_SPAdes.bash, $SAMPLE, ERROR: Cannot find a spades output file for $PAIRED_FILE. Make sure to check on this file. Running MEGAHIT." $LOG_FILE "error"
-      RUN_MEGAHIT
-  elif [[ ! -s $OUTPUT_FILE_NAME ]] && [[ $MEGAHIT_ALLOWED == "no" ]] ; then
-      write_log "assembly_with_SPAdes.bash, $SAMPLE, ERROR: Cannot find a spades output file for $PAIRED_FILE. Make sure to check on this file. Exiting." $LOG_FILE "error"
-      exit 1
+  # See if the final file has contents. If not, just report it to the log
+  if [[ ! -s ${OUTPUT_FILE_NAME} ]] ; then
+    write_log $SAMPLE_ID "There are no output contigs following length filtering." 1 $LOG_FILE
   fi
 
-  write_log "assembly_with_SPAdes.bash, $SAMPLE: Finished assembly_with_SPAdes script for $PAIRED_FILE. Time is:" $LOG_FILE
+  write_log "Finished assembly_with_SPAdes script for $PAIRED_FILE.:" 0
 }
 
-RUN_MEGAHIT() {
-  #########################
-  #DESCRIPTION:
-  #########################
-  #This function serves to run MEGAHIT assembly.
-  #Required inputs are PAIRED_FILE, UNPAIRED_FILE, TEMP_DIR, THREADS, LOG_FILE, and OUTPUT_FILE_NAME.
-  #MEGAHIT automatically uses 90% of available memory.
-
-  #########################
-  #Starting script:
-  #########################
-  #Make sure the necessary directories have been made
-  mkdir -p $TEMP_DIR
-  mkdir -p $(dirname $OUTPUT_FILE_NAME)
-  mkdir -p $(dirname $LOG_FILE)
-
-  #Defining SAMPLE
-  local SAMPLE=$( basename $PAIRED_FILE )
-
-  #Reporting start of the function
-  write_log "assembly_with_SPAdes.bash, $SAMPLE, xxxxMEGAHITxxxx: Starting megahit." $LOG_FILE
-
-  #Determine if the input is paired or unpaired
-  if [[ -s $PAIRED_FILE ]] && [[ -s $UNPAIRED_FILE ]] ; then
-    local PAIRING=BOTH
-    write_log "assembly_with_SPAdes.bash, $SAMPLE, xxxxMEGAHITxxxx: Found both a paired and unpaired file." $LOG_FILE
-  elif [[ -s $PAIRED_FILE ]] && [[ ! -s $UNPAIRED_FILE ]] ; then
-    local PAIRING=PAIRED
-    write_log "assembly_with_SPAdes.bash, $SAMPLE, xxxxMEGAHITxxxx: Found only a paired file." $LOG_FILE
-  elif [[ ! -s $PAIRED_FILE ]] && [[ -s $UNPAIRED_FILE ]] ; then
-    local PAIRING=UNPAIRED
-    write_log "assembly_with_SPAdes.bash, $SAMPLE, xxxxMEGAHITxxxx: Found only an upaired file." $LOG_FILE
-  elif [[ ! -s $PAIRED_FILE ]] && [[ ! -s $UNPAIRED_FILE ]] ; then
-    write_log "assembly_with_SPAdes.bash, $SAMPLE, xxxxMEGAHITxxxx: Cannot find a paired or unpaired file. Exiting." $LOG_FILE "error"
-    exit 1
-  fi
-
-  #Running MEGAHIT. Will output contigs to temporary directory, and then will copy over to final directory.
-  echo "assembly_with_SPAdes.bash, $SAMPLE, xxxxMEGAHITxxxx: Running MEGAHIT." >> $LOG_FILE
-  if [ $PAIRING == "BOTH" ] ; then
-    megahit \
-    --12 $PAIRED_FILE \
-    -r $UNPAIRED_FILE \
-    -t $THREADS \
-    --presets meta-sensitive \
-    -o $TEMP_DIR/MEGAHIT \
-    --out-prefix $SAMPLE'_MEGAHIT_OUTPUT'
-  elif [ $PAIRING == "PAIRED" ] ; then
-    megahit \
-    --12 $PAIRED_FILE \
-    -t $THREADS \
-    --presets meta-sensitive \
-    -o $TEMP_DIR/MEGAHIT \
-    --out-prefix $SAMPLE'_MEGAHIT_OUTPUT'
-  elif [ $PAIRING == "UNPAIRED" ] ; then
-    megahit \
-    -r $UNPAIRED_FILE \
-    -t $THREADS \
-    --presets meta-sensitive \
-    -o $TEMP_DIR/MEGAHIT \
-    --out-prefix $SAMPLE'_MEGAHIT_OUTPUT'
-  fi
-
-  #Copying output file to final location. Removing the spaces and making them underscores.
-  rm $OUTPUT_FILE_NAME
-  cat $TEMP_DIR/MEGAHIT/$SAMPLE'_MEGAHIT_OUTPUT.contigs.fa' | while read LINE; do LINE=${LINE// /_} ; echo $LINE >> $OUTPUT_FILE_NAME ; done
-
-  #Make sure the outfile exists and has contents
-  if [[ ! -s $OUTPUT_FILE_NAME ]] ; then
-    write_log "assembly_with_SPAdes.bash, $SAMPLE, ERROR: xxxxMEGAHITxxxx: Cannot find a spades output file for $PAIRED_FILE, paired and/or unpaired. Make sure to check on this file. Exiting." $LOG_FILE "error"
-    exit 1
-  fi
-
-  #Reporting end of the function
-  write_log "assembly_with_SPAdes.bash, $SAMPLE, xxxxMEGAHITxxxx: Finished megahit. Time is " $LOG_FILE
-}
 
 #------------------------------------------------------------------------------#
 #Calling functions

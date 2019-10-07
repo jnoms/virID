@@ -2,7 +2,7 @@
 // Default params
 //============================================================================//
 params.out_dir = "output"
-
+params.log_file = "${launchDir}/${params.out_dir}/results/virID.log"
 
 //============================================================================//
 // Define process
@@ -28,7 +28,8 @@ process bwa_mem_contigs {
   -v ${sampleID}_cov \
   -b ${sampleID}.bam \
   -t ${task.cpus} \
-  -l ${sampleID}_bwa.log \
-  -e temp
+  -l ${params.log_file} \
+  -e temp \
+  -s ${sampleID}
   """
 }

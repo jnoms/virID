@@ -40,7 +40,8 @@ include blast as blast_contaminant from 'bin/modules/blast' params(
   blast_type: params.blast_contaminant_type,
   blast_max_hsphs: params.blast_contaminant_max_hsphs,
   blast_max_targets: params.blast_contaminant_max_targets,
-  out_dir: "$params.out_dir/contaminant"
+  out_dir: "$params.out_dir/contaminant",
+  log_file: params.log_file
   )
 
 include 'bin/modules/bwa_mem' params(params)
@@ -72,30 +73,31 @@ input_ch = sampleID_set_from_infile(params.reads)
 // Starting process chain
 //============================================================================//
 
-// Generate contigs and map reads back to assembly
+// Generate contigs
 process_read_pairs(input_ch) | spades_assembly
+contigs = spades_assembly.out.filter{ it[1].size() > 0 }
 
 // Map reads back to assembly
-contigs_and_reads_ch = spades_assembly.out
+contigs_and_reads_ch = contigs
                         .join(process_read_pairs.out)
 
 bwa_mem_contigs(contigs_and_reads_ch)
 
 // Assembly - DIAMOND processing
-diamond(spades_assembly.out)
+diamond(contigs)
   .filter{ it[1].size() > 0 } | convert_diamond
 
 // Assembly - BLAST Processing
-blast(spades_assembly.out)
+blast(contigs)
   .filter{ it[1].size()>0 } | convert_blast
 
 // Assembly - Assignment against contaminant database
-blast_contaminant(spades_assembly.out)
+blast_contaminant(contigs)
 
 // Merge channels and generate output
 generate_output_ch = convert_blast.out
                       .join(convert_diamond.out)
-                      .join(spades_assembly.out)
+                      .join(contigs)
                       .join(bwa_mem_contigs.out)
                       .join(blast_contaminant.out)
 

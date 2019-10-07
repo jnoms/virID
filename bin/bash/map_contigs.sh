@@ -44,6 +44,8 @@ usage() {
                                   Default: No log file
         -e <TEMP_DIR>            Path to the temprorary directory
                                   Default: ./mapping
+        -s <SAMPLE_ID>           Name of the sample being processed.
+                                  Default: Basename of PAIRED_READS
 
         "
 }
@@ -55,7 +57,7 @@ if [ $# -le 3 ] ; then
 fi
 
 #Setting input
-while getopts p:u:c:o:v:b:t:l:e: option ; do
+while getopts p:u:c:o:v:b:t:l:e:s: option ; do
         case "${option}"
         in
                 p) PAIRED_READS=${OPTARG};;
@@ -68,6 +70,7 @@ while getopts p:u:c:o:v:b:t:l:e: option ; do
                 t) THREADS=${OPTARG};;
                 l) LOG_FILE=${OPTARG};;
                 e) TEMP_DIR=${OPTARG};;
+                s) SAMPLE_ID=${OPTARG};;
         esac
 done
 
@@ -77,35 +80,36 @@ done
 THREADS=${THREADS:-1}
 TEMP_DIR=${TEMP_DIR:-./mapping}
 LOG_FILE=${LOG_FILE:-$TEMP_DIR/log.txt}
+SAMPLE_ID=${SAMPLE_ID:-$(basename $PAIRED_READS)}
 
 #------------------------------------------------------------------------------#
 # Functions
 #------------------------------------------------------------------------------#
 write_log() {
-  #The purpose of this function is to echo a message to stdout, and write that message to a log file with the date. This function works as follows:
-  #write_log $1="message" $2=<log_file> $3="error"(optional)
-  local MESSAGE=$1
-  local LOG_FILE=$2
-  local ERROR_STATUS=$3
-  # Print message to screen
-  echo "$MESSAGE"
+  # The purpose of this function is to append to a log, which is CSV output.
+  # Structure is sampleID, file_name/process, message, error(0 or 1). Log file
+  # is optional - if not input, will print to screen.
+
+  # Usage:
+  # write_log <sampleID> <message> <error - 0 or 1> <log_file>
+  sampleID=$1
+  FILE_NAME=$(basename $0)
+  message=$2
+  error=$3
+  log_file=$4
+
+  OUTPUT="${sampleID},${FILE_NAME},${message},${error}"
+  echo $OUTPUT
   date
 
-  # If there is no log file, we're done here
-  if [[ $LOG_FILE == '' ]] ; then
+  # If no log file, leave
+  if [[ $log_file == '' ]] ; then
     return
   fi
 
-  # Print message to log file
-  mkdir -p $(dirname $LOG_FILE)
-  echo "$MESSAGE" >> $LOG_FILE
-  date >> $LOG_FILE
-
-  # If this is an error, write to error log file.
-  if [[ $ERROR_STATUS == "error" ]] ; then
-    echo "$MESSAGE" >> $LOG_FILE'_error'
-    date >> $LOG_FILE'_error'
-  fi
+  # Write to log
+  mkdir -p $(dirname $log_file)
+  echo $OUTPUT >> $log_file
 }
 
 check_if_file_exists() {
@@ -120,9 +124,13 @@ check_if_file_exists() {
   FILE_LIST=$1
   for FILE in $FILE_LIST ; do
     if [ ! -s $FILE ] ; then
-      echo "Cannot find the file $FILE. Exiting script."
-      echo "Cannot find the file $FILE. Exiting script." >> $LOG_FILE
-      echo "Cannot find the file $FILE. Exiting script." >> $LOG_FILE'_error'
+
+      write_log \
+      $SAMPLE_ID \
+      "Cannot find the file $FILE. Exiting script." \
+      1 \
+      $LOG_FILE
+
       exit 1
     fi
   done
@@ -149,6 +157,11 @@ run_bwa() {
 #------------------------------------------------------------------------------#
 # Execute script
 #------------------------------------------------------------------------------#
+
+write_log \
+$SAMPLE_ID \
+"Starting script." \
+0
 
 # Set up dirs
 #------------------------------------------------------------------------------#
@@ -186,3 +199,8 @@ samtools index $OUTPUT_BAM
 samtools idxstats $OUTPUT_BAM | cut -f1,3 > $OUTPUT_COUNTS
 pileup.sh in=${OUTPUT_BAM} out=$TEMP_DIR/coverage.txt
 awk '{print $1,$2,$5}' $TEMP_DIR/coverage.txt > $OUTPUT_COV
+
+write_log \
+$SAMPLE_ID \
+"Finished." \
+0
