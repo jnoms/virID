@@ -40,6 +40,7 @@ In general, all input values and parameters for this script must be entered in t
 #### SPAdes
 **params.spades_type:** Options are 'meta', 'rna', and 'regular'. This specifies whether to use metaspades.py, rnaspades.py, or spades.py.  
 **params.temp_dir:** This specifies the location of the SPAdes temporary directory.  
+**params.spades_min_length:** The minimum contig length that is output from the SPAdes process. Contigs below this length will be filtered out.  
 
 #### DIAMOND
 **params.diamond_database:** Path to the diamond database. Wrap all paths in quotes!  
@@ -82,5 +83,3 @@ I have set up virID with *dynamic resources!* Essentially, each process will req
 
 ## Description of outfiles
 *in progress*
-
-
