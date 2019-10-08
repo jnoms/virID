@@ -183,7 +183,6 @@ assembly_with_SPAdes() {
   if [[ ! -f ${OUTPUT_FILE_NAME}.tmp ]] ; then
     write_log $SAMPLE_ID "Cannot find the SPAdes output file ${OUTPUT_FILE_NAME}.tmp!\
      Spades may have failed, or this might be a real inability to make contigs." 1 $LOG_FILE
-    exit 1
   fi
 
   # Filter contigs by min-length
