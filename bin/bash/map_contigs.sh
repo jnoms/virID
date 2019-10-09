@@ -9,6 +9,8 @@ module load gcc
 module load samtools
 module load bwa
 
+set -e
+
 #------------------------------------------------------------------------------#
 # Defining usage and setting input
 #------------------------------------------------------------------------------#
