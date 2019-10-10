@@ -12,6 +12,7 @@ params.blast_max_targets = 30
 params.blast_restrict_to_taxids = "no"
 params.blast_ignore_taxids = "no"
 params.out_dir = 'output'
+params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
 
 //============================================================================//
 // Define process
@@ -46,6 +47,7 @@ process blast {
       -m ${params.blast_max_hsphs} \
       -s ${params.blast_max_targets} \
       -r ${params.blast_restrict_to_taxids} \
-      -i ${params.blast_ignore_taxids}
+      -i ${params.blast_ignore_taxids} \
+      -n ${sampleID}
       """
 }

@@ -36,6 +36,8 @@ usage() {
                           bitscore pident length'
         -l <LOG_FILE>   Path to the log file
                            Default: No log file.
+        -s <SAMPLE_ID>  Name of the sample, used for logging purposes.
+                           Default: Basename of query.
         "
 }
 
@@ -46,7 +48,7 @@ if [ $# -le 3 ] ; then
 fi
 
 #Setting input
-while getopts d:q:o:m:t:e:f:l: option ; do
+while getopts d:q:o:m:t:e:f:l:s: option ; do
         case "${option}"
         in
                 d) DATABASE=${OPTARG};;
@@ -57,6 +59,7 @@ while getopts d:q:o:m:t:e:f:l: option ; do
                 e) EVALUE=${OPTARG};;
                 f) OUT_FORMAT=${OPTARG};;
                 l) LOG_FILE=${OPTARG};;
+                s) SAMPLE_ID=${OPTARG};;
         esac
 done
 
@@ -67,6 +70,7 @@ MEMORY=${MEMORY:-10}
 TEMP_DIR=${TEMP_DIR:-./diamond_temp}
 EVALUE=${EVALUE:-10}
 OUT_FORMAT=${OUT_FORMAT:-"6 qseqid stitle sseqid staxids evalue bitscore pident length"}
+SAMPLE_ID=${SAMPLE_ID:-$(basename $QUERY)}
 
 # Calculate DIAMOND block size
 if [[ $MEMORY < 10 ]] ; then
@@ -79,32 +83,30 @@ fi
 #Defining functions
 #------------------------------------------------------------------------------#
 write_log() {
-  # The purpose of this function is to echo a message to stdout, and write that
-  # message to a log file with the date. This function works as follows:
-  # write_log $1="message" $2=<log_file> $3="error"(optional)
-  local MESSAGE=$1
-  local LOG_FILE=$2
-  local ERROR_STATUS=$3
+  # The purpose of this function is to append to a log, which is CSV output.
+  # Structure is sampleID, file_name/process, message, error(0 or 1). Log file
+  # is optional - if not input, will print to screen.
 
-  # Print message to screen
-  echo "$MESSAGE"
+  # Usage:
+  # write_log <sampleID> <message> <error - 0 or 1> <log_file>
+  sampleID=$1
+  FILE_NAME=$(basename $0)
+  message=$2
+  error=$3
+  log_file=$4
+
+  OUTPUT="${sampleID},${FILE_NAME},${message},${error}"
+  echo $OUTPUT
   date
 
-  # If there is no log file, we're done here
-  if [[ $LOG_FILE == '' ]] ; then
+  # If no log file, leave
+  if [[ $log_file == '' ]] ; then
     return
   fi
 
-  # Print message to log file
-  mkdir -p $(dirname $LOG_FILE)
-  echo "$MESSAGE" >> $LOG_FILE
-  date >> $LOG_FILE
-
-  # If this is an error, write to error log file.
-  if [[ $ERROR_STATUS == "error" ]] ; then
-    echo "$MESSAGE" >> $LOG_FILE'_error'
-    date >> $LOG_FILE'_error'
-  fi
+  # Write to log
+  mkdir -p $(dirname $log_file)
+  echo $OUTPUT >> $log_file
 }
 
 run_diamond() {
@@ -112,18 +114,28 @@ run_diamond() {
   mkdir -p $( dirname $OUTPUT_PATH )
   mkdir -p $TEMP_DIR
 
-  #Get sample name
-  SAMPLE=$( basename $QUERY )
-
   #Write to log
-  write_log "run_diamond.bash, $SAMPLE: Starting run_diamond.bash script. " $LOG_FILE
+  write_log \
+  $SAMPLE_ID \
+  "Starting at $(date)." \
+  0
 
   #Make sure inputs exist exists
   if [ ! -f $DATABASE ] ; then
-    write_log "run_diamond.bash, $SAMPLE: Cannot find the input database, $DATABASE. Exiting." $LOG_FILE "error"
+    write_log \
+    $SAMPLE_ID \
+    "Cannot find the input database, $DATABASE. Exiting." \
+    1 \
+    $LOG_FILE
+
     exit 1
   elif [ ! -f $QUERY ] ; then
-    write_log "run_diamond.bash, $SAMPLE: Cannot find the query file, $QUERY. Exiting." $LOG_FILE "error"
+    write_log \
+    $SAMPLE_ID \
+    "Cannot find the query file, $QUERY. Exiting." \
+    1 \
+    $LOG_FILE
+
     exit 1
   fi
 
@@ -140,13 +152,29 @@ run_diamond() {
   --top 1 \
   --block-size $BLOCK
 
-  write_log "run_diamond.bash, $SAMPLE: Finished run_diamond.bash script." $LOG_FILE
-
   #Check that the output file exists. It no matches it should exist, though it will be empty.
   if [ ! -f $OUTPUT_PATH ] ; then
-    write_log "run_diamond.bash, $SAMPLE: CANNOT find DIAMOND output file. Exiting script." $LOG_FILE "error"
+    write_log \
+    $SAMPLE_ID \
+    "CANNOT find DIAMOND output file. Exiting script." \
+    1 \
+    $LOG_FILE
     exit 1
   fi
+
+  # If there is no contents in the OUTPUT_FILE don't quit, but report warning
+  if [[ ! -s $OUTPUT_PATH ]] ; then
+    write_log \
+    $SAMPLE_ID \
+    "WARN: Output file $OUTPUT_PATH doesn't have any contents." \
+    1 \
+    $LOG_FILE
+  fi
+
+  write_log \
+  $SAMPLE_ID \
+  "Finished at $(date)." \
+  0
 }
 
 #------------------------------------------------------------------------------#

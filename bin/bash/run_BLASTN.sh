@@ -34,6 +34,7 @@ usage() {
         -s <MAX_TARGETS> Maximum number of hits per query.        Default: 30
         -r <RESTRICT_TO_TAXIDS> Only search against this taxonID. Default: None
         -i <IGNORE_TAXIDS>      Ignore these taxonIDs.            Default: None
+        -n <SAMPLE_ID>   Name of the sample being processed.      Default: Basename of QUERY
         "
 }
 
@@ -44,7 +45,7 @@ if [ $# -le 3 ] ; then
 fi
 
 #Setting input
-while getopts d:q:o:t:e:f:l:b:m:s:r:i: option ; do
+while getopts d:q:o:t:e:f:l:b:m:s:r:i:n: option ; do
         case "${option}"
         in
                 d) DATABASE=${OPTARG};;
@@ -59,6 +60,7 @@ while getopts d:q:o:t:e:f:l:b:m:s:r:i: option ; do
                 s) MAX_TARGETS=${OPTARG};;
                 r) RESTRICT_TO_TAXIDS=${OPTARG};;
                 i) IGNORE_TAXIDS=${OPTARG};;
+                n) SAMPLE_ID=${OPTARG};;
         esac
 done
 
@@ -73,37 +75,37 @@ MAX_HSPS=${MAX_HSPS:-1}
 MAX_TARGETS=${MAX_TARGETS:-30}
 RESTRICT_TO_TAXIDS=${RESTRICT_TO_TAXIDS:-no}
 IGNORE_TAXIDS=${IGNORE_TAXIDS:-no}
+SAMPLE_ID=${SAMPLE_ID:-$(basename $QUERY)}
+
 
 ###############################
 #Defining functions
 ###############################
 write_log() {
-  # The purpose of this function is to echo a message to stdout, and write that
-  # message to a log file with the date. This function works as follows:
-  # write_log $1="message" $2=<log_file> $3="error"(optional)
-  local MESSAGE=$1
-  local LOG_FILE=$2
-  local ERROR_STATUS=$3
+  # The purpose of this function is to append to a log, which is CSV output.
+  # Structure is sampleID, file_name/process, message, error(0 or 1). Log file
+  # is optional - if not input, will print to screen.
 
-  # Print message to screen
-  echo "$MESSAGE"
+  # Usage:
+  # write_log <sampleID> <message> <error - 0 or 1> <log_file>
+  sampleID=$1
+  FILE_NAME=$(basename $0)
+  message=$2
+  error=$3
+  log_file=$4
+
+  OUTPUT="${sampleID},${FILE_NAME},${message},${error}"
+  echo $OUTPUT
   date
 
-  # If there is no log file, we're done here
-  if [[ $LOG_FILE == '' ]] ; then
+  # If no log file, leave
+  if [[ $log_file == '' ]] ; then
     return
   fi
 
-  # Print message to log file
-  mkdir -p $(dirname $LOG_FILE)
-  echo "$MESSAGE" >> $LOG_FILE
-  date >> $LOG_FILE
-
-  # If this is an error, write to error log file.
-  if [[ $ERROR_STATUS == "error" ]] ; then
-    echo "$MESSAGE" >> $LOG_FILE'_error'
-    date >> $LOG_FILE'_error'
-  fi
+  # Write to log
+  mkdir -p $(dirname $log_file)
+  echo $OUTPUT >> $log_file
 }
 
 run_BLASTN() {
@@ -114,11 +116,19 @@ run_BLASTN() {
   mkdir -p $( dirname $OUTPUT_FILE )
 
   #Write to log
-  write_log "run_BLASTN.bash, $SAMPLE: Starting run_BLASTN script." $LOG_FILE
+  write_log \
+  $SAMPLE_ID \
+  "Starting script at $(date)." \
+  0
 
   #Check that inputs exist
   if [[ ! -s $QUERY ]] ; then
-    write_log "run_BLASTN.bash, $SAMPLE: Cannot find QUERY file, which is set to $QUERY. Exiting." $LOG_FILE "error"
+    write_log \
+    $SAMPLE_ID \
+    "Cannot find QUERY file, which is set to $QUERY. Exiting." \
+    1 \
+    $LOG_FILE
+
     exit 1
   fi
 
@@ -159,18 +169,40 @@ run_BLASTN() {
     -max_target_seqs $MAX_TARGETS \
     -negative_taxids $IGNORE_TAXIDS
   else
-    write_log "run_BLASTN.bash, $SAMPLE: Cannot specify both RESTRICT_TO_TAXIDS and IGNORE_TAXIDS" $LOG_FILE "error"
+    write_log \
+    $SAMPLE_ID \
+    "Cannot specify both RESTRICT_TO_TAXIDS and IGNORE_TAXIDS." \
+    1 \
+    $LOG_FILE
+
     exit 1
   fi
 
   #Check that the output file exists. It no matches it should exist, though it will be empty.
   if [[ ! -f $OUTPUT_FILE ]] ; then
-    write_log "run_BLASTN.bash, $SAMPLE: Cannot find output file, suggesting something went wrong. Exiting." $LOG_FILE "error"
+    write_log \
+    $SAMPLE_ID \
+    "Cannot find output file, suggesting something went wrong. Exiting." \
+    1 \
+    $LOG_FILE
+
     exit 1
   fi
 
+  # If there is no contents in the OUTPUT_FILE don't quit, but report warning
+  if [[ ! -s $OUTPUT_PATH ]] ; then
+    write_log \
+    $SAMPLE_ID \
+    "WARN: Output file $OUTPUT_FILE doesn't have any contents." \
+    1 \
+    $LOG_FILE
+  fi
+
   #Write to log
-  write_log "run_BLASTN.bash, $SAMPLE: Finished run_BLASTN script." $LOG_FILE
+  write_log \
+  $SAMPLE_ID \
+  "Finished script at $(date)." \
+  0
 }
 
 ###############################

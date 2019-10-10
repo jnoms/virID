@@ -357,22 +357,29 @@ def format_taxonomy_inputs(contig_taxonomy_file, contig_fasta, counts_file, cont
     #fill in the unassigned contigs
     data = mark_unassigned_sequences(raw_data, headers)
 
-    #Make counts_dictionary from counts_file
+    # Make counts_dictionary from counts_file if it was added and has contents
     if counts_file == '':
         counts_dictionary = ''
         print("Did not detect a counts file! Assuming these are reads.")
+    elif os.stat(counts_file).st_size == 0:
+        counts_dictionary = ''
+        print("WARN: Received a counts_file, but it is empty! Continuing without.")
     else:
         counts_dictionary = make_counts_dictionary_from_counts_file(counts_file)
 
-    #Add counts to the dataframe
+    # Add counts to the dataframe
     data_with_counts = add_read_counts_to_dataframe(data, counts_dictionary)
 
-    # If coverage info was added, add it to the dataframe
-    if contig_cov_file != '':
+    # If coverage info was added and has contents, add it to the dataframe
+    if contig_cov_file == '':
+        print("Did not received a contig coverage file.")
+        out_df = data_with_counts
+    elif os.stat(contig_cov_file).st_size == 0:
+        print("WARN: Received a contig cov file, but it is empty. Continuing without.")
+        out_df = data_with_counts
+    else:
         cov_df = read_cov_file(contig_cov_file, column_names = "query_ID average_fold covered_percent")
         out_df = data_with_counts.merge(cov_df, how='outer')
-    else:
-        out_df = data_with_counts
 
     return out_df
 
@@ -627,7 +634,7 @@ def main():
         contig_counts_file,
         contig_cov_file
         )
-    MERGED_df = merge_dataframes(BLASTN_df, DIAMOND_df, ['BLASTN', 'DIAMOND'])
+    MERGED_df = merge_dataframes(BLASTN_df, DIAMOND_df, ['megablast', 'DIAMOND'])
 
     # if contaminant file input, mark the possible contaminants
     if contaminant_file != "":

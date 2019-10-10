@@ -4,6 +4,8 @@
 params.spades_type = 'rna'
 params.temp_dir = 'temp'
 params.out_dir = 'output'
+params.spades_min_length = 300
+params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
 
 //============================================================================//
 // Define process
@@ -25,11 +27,12 @@ process spades_assembly {
   -s ${params.spades_type} \
   -p ${paired_reads} \
   -u ${unpaired_reads} \
-  -l ${sampleID}_SPAdes_assembly.log \
+  -l ${params.log_file} \
   -m ${task.memory.toGiga()} \
   -t ${task.cpus} \
   -e ${params.temp_dir} \
   -o ${sampleID}_contigs.fasta \
-  -g yes
+  -L ${params.spades_min_length} \
+  -n ${sampleID}
   """
 }
