@@ -108,7 +108,7 @@ Change the `cacheDir` value in `nextflow.config` to a directory you'd like to st
 1. Each process will copy its outfiles to params.out_dir. You can disable this setting my removing the `publishDir` line from each module file.  
 2. The `our_dir/results` dir will contain the main pipeline outputs:  
 
-**${sampleID}_merged.tsv:** This is a tab-delimited file containing assignment information for each contig. Each contig takes up two lines, where one line details the BLAST assignment information and one details the DIAMOND assignment information. Columns from `seq_title` to `length` are a comma-delimited list detailing information from all DIAMOND or blast hits that were considered in the LCA calculation. Starting at `LCA_taxonID`, the taxonomic information is that of the LCA of these hits.  
+**sampleID_merged.tsv:** This is a tab-delimited file containing assignment information for each contig. Each contig takes up two lines, where one line details the BLAST assignment information and one details the DIAMOND assignment information. Columns from `seq_title` to `length` are a comma-delimited list detailing information from all DIAMOND or blast hits that were considered in the LCA calculation. Starting at `LCA_taxonID`, the taxonomic information is that of the LCA of these hits.  
 
 Column names include:  
 `query_ID:`               Contig name  
@@ -134,7 +134,7 @@ Column names include:
 `covered_percent:`        Percentage of the contig covered by input reads.  
 `potential_contaminant:`  1 if assigned to the contaminant vector database, 0 otherwise. (Column excluded if no contaminants found).  
 
-**${sampleID}_blast_counts.tsv and ${sampleID}_diamond_counts.tsv:** Here, the read_count for each contig is distributed to each taxonomic level of the LCA of that contig. For example, if a contig has an LCA of sk__superkingdom/k__kingdom/f__polyomaviridae and has a read_count of 10, 10 reads are assigned to each f__polyomaviridae, k__kingdom, and sk__superkingdom. These outputs detail the results based on the blast or DIAMOND assignments, respectively. **Note that if a contig is assigned by megablast to the vector contaminate database the counts from that contig will NOT be included in this output.** The columns include:  
+**sampleID_blast_counts.tsv and ${sampleID}_diamond_counts.tsv:** Here, the read_count for each contig is distributed to each taxonomic level of the LCA of that contig. For example, if a contig has an LCA of sk__superkingdom/k__kingdom/f__polyomaviridae and has a read_count of 10, 10 reads are assigned to each f__polyomaviridae, k__kingdom, and sk__superkingdom. These outputs detail the results based on the blast or DIAMOND assignments, respectively. **Note that if a contig is assigned by megablast to the vector contaminate database the counts from that contig will NOT be included in this output.** The columns include:  
 `taxonID`      The taxonID  
 `lineage`      The name of each taxon in the lineage of the taxonID.  
 `superkingdom` The superkingdom of the taxonID  
