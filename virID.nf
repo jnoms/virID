@@ -111,17 +111,21 @@ workflow assembly {
 }
 
 //============================================================================//
-// Call workflows
+// Define main
 //============================================================================//
-if ( params.assembly_pipeline == "T" ) {
-  assembly
+workflow main {
+  if ( params.assembly_pipeline == "T" ) {
+    assembly()
+  }
+  //if ( params.reads_pipeline == "T" ) {
+  //
+  //}
+  if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
+    error "One or both params.assembly_pipeline and params.reads_pipeline must \
+    be set to T."
+  }
+
 }
-//if ( params.reads_pipeline == "T" ) {
-//
-//}
-if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
-  error "One or both params.assembly_pipeline and params.reads_pipeline must \
-  be set to T."
-}
+
 
 // processed_reads_ch.subscribe{ println it }
