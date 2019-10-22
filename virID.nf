@@ -8,13 +8,13 @@ params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
 //============================================================================//
 // Set up modules
 //============================================================================//
-include 'bin/modules/process_read_pairs' params(params)
+include './bin/modules/process_read_pairs' params(params)
 
-include 'bin/modules/spades_assembly' params(params)
+include './bin/modules/spades_assembly' params(params)
 
-include 'bin/modules/diamond'  params(params)
+include './bin/modules/diamond'  params(params)
 
-include blast_to_LCA as convert_diamond from 'bin/modules/blast_to_LCA' params(
+include blast_to_LCA as convert_diamond from './bin/modules/blast_to_LCA' params(
   LCA_top_percent: params.LCA_top_percent,
   out_dir: params.out_dir,
   column_names: params.diamond_readable_colnames,
@@ -25,9 +25,9 @@ include blast_to_LCA as convert_diamond from 'bin/modules/blast_to_LCA' params(
   score_column:params.score_column
   )
 
-include 'bin/modules/blast' params(params)
+include './bin/modules/blast' params(params)
 
-include blast_to_LCA as convert_blast from 'bin/modules/blast_to_LCA' params(
+include blast_to_LCA as convert_blast from './bin/modules/blast_to_LCA' params(
   LCA_top_percent: params.LCA_top_percent,
   out_dir: params.out_dir,
   column_names: params.blast_readable_colnames,
@@ -35,7 +35,7 @@ include blast_to_LCA as convert_blast from 'bin/modules/blast_to_LCA' params(
   taxid_blacklist: params.taxid_blacklist
   )
 
-include blast as blast_contaminant from 'bin/modules/blast' params(
+include blast as blast_contaminant from './bin/modules/blast' params(
   blast_database: params.blast_contaminant_database,
   blast_evalue: params.blast_contaminant_evalue,
   blast_outfmt: params.blast_contaminant_outfmt,
@@ -47,9 +47,9 @@ include blast as blast_contaminant from 'bin/modules/blast' params(
   log_file: params.log_file
   )
 
-include 'bin/modules/bwa_mem' params(params)
+include './bin/modules/bwa_mem' params(params)
 
-include 'bin/modules/generate_output' params(params)
+include './bin/modules/generate_output' params(params)
 
 //============================================================================//
 // Defining functions
