@@ -68,43 +68,60 @@ def sampleID_set_from_infile(input) {
 }
 
 //============================================================================//
-// Getting sampleID from infile
+// Read input data
 //============================================================================//
 input_ch = sampleID_set_from_infile(params.reads)
 
 //============================================================================//
-// Starting process chain
+// Define workflows
 //============================================================================//
+workflow assembly {
 
-// Generate contigs
-process_read_pairs(input_ch) | spades_assembly
-contigs = spades_assembly.out.filter{ it[1].size() > 0 }
+  // Generate contigs
+  process_read_pairs(input_ch) \
+    | spades_assembly
+    .filter{ it[1].size() > 0 }
+    .set{ contigs }
 
-// Map reads back to assembly
-contigs_and_reads_ch = contigs
-                        .join(process_read_pairs.out)
+  // Map reads back to assembly
+  contigs
+    .join(process_read_pairs.out) \
+    | bwa_mem_contigs
 
-bwa_mem_contigs(contigs_and_reads_ch)
+  // DIAMOND processing
+  diamond(contigs)
+    .filter{ it[1].size() > 0 } \
+    | convert_diamond
 
-// Assembly - DIAMOND processing
-diamond(contigs)
-  .filter{ it[1].size() > 0 } | convert_diamond
+  // BLAST Processing
+  blast(contigs)
+    .filter{ it[1].size()>0 } \
+    | convert_blast
 
-// Assembly - BLAST Processing
-blast(contigs)
-  .filter{ it[1].size()>0 } | convert_blast
+  // Assignment against contaminant database
+  blast_contaminant(contigs)
 
-// Assembly - Assignment against contaminant database
-blast_contaminant(contigs)
+  // Merge channels and generate output
+  convert_blast.out
+    .join(convert_diamond.out)
+    .join(contigs)
+    .join(bwa_mem_contigs.out)
+    .join(blast_contaminant.out) \
+    | generate_output
+}
 
-// Merge channels and generate output
-generate_output_ch = convert_blast.out
-                      .join(convert_diamond.out)
-                      .join(contigs)
-                      .join(bwa_mem_contigs.out)
-                      .join(blast_contaminant.out)
-
-generate_output(generate_output_ch)
-
+//============================================================================//
+// Call workflows
+//============================================================================//
+if ( params.assembly_pipeline == "T" ) {
+  assembly
+}
+//if ( params.reads_pipeline == "T" ) {
+//
+//}
+if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
+  error "One or both params.assembly_pipeline and params.reads_pipeline must \
+  be set to T."
+}
 
 // processed_reads_ch.subscribe{ println it }
