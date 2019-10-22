@@ -68,15 +68,12 @@ def sampleID_set_from_infile(input) {
 }
 
 //============================================================================//
-// Read input data
-//============================================================================//
-input_ch = sampleID_set_from_infile(params.reads)
-
-//============================================================================//
 // Define workflows
 //============================================================================//
 workflow assembly {
+  get: input_ch
 
+  main:
   // Generate contigs
   process_read_pairs(input_ch) \
     | spades_assembly
@@ -113,9 +110,11 @@ workflow assembly {
 //============================================================================//
 // Define main
 //============================================================================//
-workflow main {
+workflow {
+  input_ch = sampleID_set_from_infile(params.reads)
+
   if ( params.assembly_pipeline == "T" ) {
-    assembly()
+    assembly(input_ch)
   }
   //if ( params.reads_pipeline == "T" ) {
   //
