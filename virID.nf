@@ -58,6 +58,18 @@ include './bin/modules/bwa_mem' params(params)
 
 include './bin/modules/generate_output' params(params)
 
+include '.bin/modules/fastq_to_fasta' params(params)
+
+include get_counts as get_counts_blast from '.bin/module/get_counts' params(
+  out_dir: params.out_dir,
+  source: "blast"
+  )
+
+include get_counts as get_counts_diamond from '.bin/module/get_counts' params(
+  out_dir: params.out_dir,
+  source: "diamond"
+  )
+
 //============================================================================//
 // Defining functions
 //============================================================================//
@@ -80,7 +92,6 @@ def sampleID_set_from_infile(input) {
 workflow assembly_pipeline {
 
   get: input_ch
-
   main:
   // Generate contigs
   process_read_pairs(input_ch) \
@@ -114,14 +125,39 @@ workflow assembly_pipeline {
     .join(bwa_mem_contigs.out)
     .join(blast_contaminant.out) \
     | generate_output
+}
 
-  emit:
-  split_reads = process_read_pairs.out
-  contigs
-  blast = convert_blast.out
-  diamond = convert_diamond.out
-  blast_contaminant = blast_contaminant.out
-  results = generate_output.out
+workflow read_pipeline {
+  get: input_ch
+  main:
+
+  // Convert input to fasta
+  fastq_to_fasta(input_ch)
+
+  // Run DIAMOND
+  diamond(fastq_to_fasta.out)
+    .filter{ it[1].size() > 0 } \
+    | convert_diamond \
+    | get_counts_diamond
+
+  // Run BLAST
+  blast(fastq_to_fasta.out)
+    .filter{ it[1].size()>0 } \
+    | convert_blast \
+    | get_counts_blast
+}
+
+//============================================================================//
+// Validate inputs
+//============================================================================//
+
+if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
+  error "Either params.assembly_pipeline or params.reads_pipeline must \
+  be set to T."
+}
+if( (params.assembly_pipeline == "T") && (params.reads_pipeline == "T") ) {
+  error "Only one of params.assembly_pipeline or params.reads_pipeline must \
+  be set to T."
 }
 
 //============================================================================//
@@ -135,22 +171,8 @@ workflow {
     if ( params.assembly_pipeline == "T" ) {
       assembly_pipeline(input_ch)
     }
-    //if ( params.reads_pipeline == "T" ) {
-    //  read_pipeline(input_ch)
-    //}
-    if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
-      error "One or both params.assembly_pipeline and params.reads_pipeline must \
-      be set to T."
-    }
-
-  publish:
-    if ( params.assembly_pipeline == "T" ) {
-      assembly_pipeline.out.split_reads to: "new_output/assembly"
-      assembly_pipeline.out.contigs to: "new_output/assembly"
-      assembly_pipeline.out.blast to: "new_output/assembly"
-      assembly_pipeline.out.diamond to: "new_output/assembly"
-      assembly_pipeline.out.blast_contaminant to: "new_output/assembly"
-      assembly_pipeline.out.results to: "new_output/assembly"
+    else if ( params.reads_pipeline == "T" ) {
+     read_pipeline(input_ch)
     }
 }
 
