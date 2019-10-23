@@ -12,10 +12,10 @@ process generate_output {
   beforeScript "module load gcc conda2"
 
   input:
-  set sampleID, blast_file, diamond_file, contigs, mapped_counts, mapped_coverage, mapped_bam, contaminant
+  tuple sampleID, blast_file, diamond_file, contigs, mapped_counts, mapped_coverage, mapped_bam, contaminant
 
   output:
-  set sampleID, file("*tsv")
+  tuple sampleID, file("*tsv")
 
   script:
   """

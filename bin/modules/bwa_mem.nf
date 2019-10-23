@@ -13,10 +13,10 @@ process bwa_mem_contigs {
   publishDir "$params.out_dir/read_mapping", mode: "copy"
 
   input:
-  set sampleID, contigs, paired_reads, unpaired_reads
+  tuple sampleID, contigs, paired_reads, unpaired_reads
 
   output:
-  set sampleID, file("*_mapped.counts"), file("*_cov"), file("*.bam")
+  tuple sampleID, file("*_mapped.counts"), file("*_cov"), file("*.bam")
 
   script:
   """

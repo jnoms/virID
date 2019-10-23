@@ -18,10 +18,10 @@ process blast_to_LCA {
   beforeScript "module load gcc conda2"
 
   input:
-  set sampleID, assignment_file
+  tuple sampleID, assignment_file
 
   output:
-  set sampleID, file("*.tsv")
+  tuple sampleID, file("*.tsv")
 
   script:
   """

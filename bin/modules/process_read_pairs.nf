@@ -12,10 +12,10 @@ process process_read_pairs {
   publishDir "$params.out_dir/split_reads", mode: "copy"
 
   input:
-  set sampleID, file(reads)
+  tuple sampleID, file(reads)
 
   output:
-  set sampleID, file('*_paired.fastq'), file('*_unpaired.fastq')
+  tuple sampleID, file('*_paired.fastq'), file('*_unpaired.fastq')
 
   script:
   """

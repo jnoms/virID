@@ -17,10 +17,10 @@ process diamond {
   beforeScript "module load gcc conda2"
 
   input:
-  set sampleID, sequences
+  tuple sampleID, sequences
 
   output:
-  set sampleID, file("*_diamond.out")
+  tuple sampleID, file("*_diamond.out")
 
   script:
   """

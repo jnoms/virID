@@ -16,10 +16,10 @@ process spades_assembly {
   beforeScript "module load gcc conda2"
 
   input:
-  set sampleID, paired_reads, unpaired_reads
+  tuple sampleID, paired_reads, unpaired_reads
 
   output:
-  set sampleID, file('*contigs.fasta')
+  tuple sampleID, file('*contigs.fasta')
 
   script:
   """

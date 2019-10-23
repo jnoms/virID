@@ -23,10 +23,10 @@ process blast {
   beforeScript "module load gcc conda2"
 
   input:
-  set sampleID, sequences
+  tuple sampleID, sequences
 
   output:
-  set sampleID, file("*_blast.out")
+  tuple sampleID, file("*_blast.out")
 
   script:
   if( (params.blast_restrict_to_taxids != "no") && (params.blast_ignore_taxids != "no") )
