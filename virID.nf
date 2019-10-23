@@ -71,14 +71,16 @@ def sampleID_set_from_infile(input) {
 // Define workflows
 //============================================================================//
 workflow assembly {
+
   get: input_ch
 
   main:
   // Generate contigs
   process_read_pairs(input_ch) \
     | spades_assembly
+
+  contigs = spades_assembly.out
     .filter{ it[1].size() > 0 }
-    .set{ contigs }
 
   // Map reads back to assembly
   contigs
@@ -111,9 +113,9 @@ workflow assembly {
 // Define main
 //============================================================================//
 workflow {
-  input_ch = sampleID_set_from_infile(params.reads)
 
   if ( params.assembly_pipeline == "T" ) {
+    input_ch = sampleID_set_from_infile(params.reads)
     assembly(input_ch)
   }
   //if ( params.reads_pipeline == "T" ) {
@@ -123,7 +125,6 @@ workflow {
     error "One or both params.assembly_pipeline and params.reads_pipeline must \
     be set to T."
   }
-
 }
 
 
