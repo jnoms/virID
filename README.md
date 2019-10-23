@@ -5,9 +5,9 @@ Viral Identification and Discovery - A viral characterization pipeline built in 
 
 Quickstart
 ----
-The only software requirements for running this pipeline are the [Conda](https://docs.conda.io/en/latest/miniconda.html) package manager and [Nextflow](https://www.nextflow.io/) version 19.07.0. When the pipeline is first initiated, Nextflow will create a conda virtual environment containing all required additional software, and all processess will run in this in virtual environment. The only other things you need to take care of are making the DIAMOND and megablast databases, as well as making any changes to the executor depending on the cluster infrastructure you plan to run this pipeline on. There are more detailed descriptions of these steps below.
+The only software requirements for running this pipeline are the [Conda](https://docs.conda.io/en/latest/miniconda.html) package manager and [Nextflow](https://www.nextflow.io/) version 19.10.0 or higher. When the pipeline is first initiated, Nextflow will create a conda virtual environment containing all required additional software, and all processess will run in this in virtual environment. The only other things you need to take care of are making the DIAMOND and megablast databases, as well as making any changes to the executor depending on the cluster infrastructure you plan to run this pipeline on. There are more detailed descriptions of these steps below.
 
-1. Download Nextflow version 19.10.0. The following script will download the Nextflow executible in your current directly. Put this somewhere in your PATH.  
+1. Download Nextflow. The following script will download the Nextflow executible in your current directly. Put this somewhere in your PATH.  
 `curl -s https://get.nextflow.io | bash`  
 
 2. Prepare DIAMOND and megablast databases. 
