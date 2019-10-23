@@ -37,7 +37,7 @@ The purpose of virID is to assemble and classify microorganisms present in next-
 3) Each read is queried by megablast and DIAMOND.
 4) The megablast and DIAMOND output files are translated to a taxonomic output following last-common-ancestor (LCA) calculation for each query contig.  
 5) A counts output file that lists the number of reads assigned to each taxon at every level is generated from the translated megablast and translated DIAMOND output files. These outfiles are described in depth later in this readme.  
-6) Reads are queried with megablast against a nonredundant database of common cloning vectors. Contigs that are assigned to these sequences are flagged.  
+6) Reads are queried with megablast against a nonredundant database of common cloning vectors. Reads that are assigned to these sequences are marked in an output file.  
 
 While this pipeline is organized in Nextflow, every process is capabale of being used and tested independently of Nextflow as a bash or python script. Execute any python script (with -h) or bash script (without arguments) for detailed instructions on how to run them. The conda environment with all dependencies can be installed with `conda env create -f resouces/virID_environment.yml`.  
 
