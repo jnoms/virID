@@ -114,24 +114,44 @@ workflow assembly_pipeline {
     .join(bwa_mem_contigs.out)
     .join(blast_contaminant.out) \
     | generate_output
+
+  emit:
+  split_reads = process_read_pairs.out
+  contigs
+  blast = convert_blast.out
+  diamond = convert_diamond.out
+  blast_contaminant = blast_contaminant.out
+  results = generate_output.out
 }
 
 //============================================================================//
 // Define main workflow
 //============================================================================//
 workflow {
-  input_ch = sampleID_set_from_infile(params.reads)
 
-  if ( params.assembly_pipeline == "T" ) {
-    assembly_pipeline(input_ch)
-  }
-  //if ( params.reads_pipeline == "T" ) {
-  //  read_pipeline(input_ch)
-  //}
-  if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
-    error "One or both params.assembly_pipeline and params.reads_pipeline must \
-    be set to T."
-  }
+  main:
+    input_ch = sampleID_set_from_infile(params.reads)
+
+    if ( params.assembly_pipeline == "T" ) {
+      assembly_pipeline(input_ch)
+    }
+    //if ( params.reads_pipeline == "T" ) {
+    //  read_pipeline(input_ch)
+    //}
+    if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
+      error "One or both params.assembly_pipeline and params.reads_pipeline must \
+      be set to T."
+    }
+
+  publish:
+    if ( params.assembly_pipeline == "T" ) {
+      assembly_pipeline.out.split_reads to: "new_output/assembly"
+      assembly_pipeline.out.contigs to: "new_output/assembly"
+      assembly_pipeline.out.blast to: "new_output/assembly"
+      assembly_pipeline.out.diamond to: "new_output/assembly"
+      assembly_pipeline.out.blast_contaminant to: "new_output/assembly"
+      assembly_pipeline.out.results to: "new_output/assembly"
+    }
 }
 
 
