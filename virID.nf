@@ -5,6 +5,13 @@ nextflow.preview.dsl=2
 // Log file must be set here to access laucnhDir information
 params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
 
+// Require nextflow version
+if( !nextflow.version.matches('19.10+') ) {
+    println "This workflow requires Nextflow version 19.10 or greater -- You \
+    are running version $nextflow.version"
+    exit 1
+}
+
 //============================================================================//
 // Set up modules
 //============================================================================//
