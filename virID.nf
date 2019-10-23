@@ -70,7 +70,7 @@ def sampleID_set_from_infile(input) {
 //============================================================================//
 // Define workflows
 //============================================================================//
-workflow assembly {
+workflow assembly_pipeline {
 
   get: input_ch
 
@@ -113,13 +113,13 @@ workflow assembly {
 // Define main workflow
 //============================================================================//
 workflow {
+  input_ch = sampleID_set_from_infile(params.reads)
 
   if ( params.assembly_pipeline == "T" ) {
-    input_ch = sampleID_set_from_infile(params.reads)
-    assembly(input_ch)
+    assembly_pipeline(input_ch)
   }
   //if ( params.reads_pipeline == "T" ) {
-  //
+  //  read_pipeline(input_ch)
   //}
   if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
     error "One or both params.assembly_pipeline and params.reads_pipeline must \
