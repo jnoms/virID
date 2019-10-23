@@ -60,12 +60,12 @@ include './bin/modules/generate_output' params(params)
 
 include '.bin/modules/fastq_to_fasta' params(params)
 
-include get_counts as get_counts_blast from '.bin/module/get_counts' params(
+include get_counts as get_counts_blast from './bin/module/get_counts' params(
   out_dir: params.out_dir,
   source: "blast"
   )
 
-include get_counts as get_counts_diamond from '.bin/module/get_counts' params(
+include get_counts as get_counts_diamond from './bin/module/get_counts' params(
   out_dir: params.out_dir,
   source: "diamond"
   )
