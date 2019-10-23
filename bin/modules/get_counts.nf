@@ -22,7 +22,7 @@ process get_counts {
   """
   python $workflow.projectDir/bin/python/get_counts.py \
   -i ${assignment_file} \
-  -o ${sampleID}_{$params.source}_counts.tsv \
-  -l ${sampleID}_{$params.source}_counts.log
+  -o ${sampleID}_${params.source}_counts.tsv \
+  -l ${sampleID}_${params.source}_counts.log
   """
 }

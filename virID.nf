@@ -5,7 +5,7 @@ nextflow.preview.dsl=2
 // Log file must be set here to access laucnhDir information
 params.log_file = "${workflow.launchDir}/${params.out_dir}/reports/virID.log"
 
-// Require nextflow version
+// Require nextflow version 19.10 or higher
 if( !nextflow.version.matches('19.10+') ) {
     println "This workflow requires Nextflow version 19.10 or greater -- You \
     are running version $nextflow.version"
@@ -148,6 +148,9 @@ workflow read_pipeline {
     .filter{ it[1].size()>0 } \
     | convert_blast \
     | get_counts_blast
+
+  // Run contaminant blast
+  blast_contaminant(fastq_to_fasta.out)
 }
 
 //============================================================================//
