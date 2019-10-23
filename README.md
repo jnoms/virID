@@ -7,12 +7,12 @@ Quickstart
 ----
 The only software requirements for running this pipeline are the [Conda](https://docs.conda.io/en/latest/miniconda.html) package manager and [Nextflow](https://www.nextflow.io/) version 19.07.0. When the pipeline is first initiated, Nextflow will create a conda virtual environment containing all required additional software, and all processess will run in this in virtual environment. The only other things you need to take care of are making the DIAMOND and megablast databases, as well as making any changes to the executor depending on the cluster infrastructure you plan to run this pipeline on. There are more detailed descriptions of these steps below.
 
-1. Download Nextflow version 19.07.0  
-`conda install nextflow=19.07.0`  
+1. Download Nextflow version 19.10.0. The following script will download the Nextflow executible in your current directly. Put this somewhere in your PATH.  
+`curl -s https://get.nextflow.io | bash`  
 
 2. Prepare DIAMOND and megablast databases. 
 
-3. Configure input parameters in `nextflow.config`.  
+3. Configure input parameters in `nextflow.config`.
 
 4. Change executor in `nextflow.config` if not using a SLURM cluster.
 
@@ -20,19 +20,29 @@ The only software requirements for running this pipeline are the [Conda](https:/
 
 
 ## Description
-The purpose of virID is to assemble and classify microorganisms present in next-generation sequencing data. The steps of this pipeline are as follows:
-1) Input fastqs are split into a paired file containing interleaved paired reads, and an unpaired file containing unpaired reads. Thus, each sample should be added to this pipeline as a single fastq containing both paired and unpaired reads.
-2) Reads are assembled with the SPAdes assembler - SPAdes, metaSPAdes, or rnaSPAdes can be specified.
-3) bwa mem is used to map reads back to contigs.
-4) The DIAMOND and megablast aligners are used for taxonomic assignment of assembled contigs.
-5) DIAMOND and megablast output files are translated to a taxonomic output following last-common-ancestor (LCA) calculation for each query contig.
-6) Contigs are queried with megablast against a nonredundant database of common cloning vectors. Contigs that are assigned to these sequences are flagged.
-6) DIAMOND and megablast taxonomic outputs and contig count information are merged to a comprehensive taxonomic output, and unassigned contigs are flagged. Counts outputs, one for each DIAMOND and megablast, are generated which display the counts at every taxonomic level. There is a section below that describes the output files in more detail.
+The purpose of virID is to assemble and classify microorganisms present in next-generation sequencing data. This pipeline can be run in "assembly mode" or "read mode", as determined by the assembly_pipeline and reads_pipeline parameters. The main difference is whether contigs are generated with SPAdes, or if the reads are queried without assembly. The pipeline steps are listed below, but note that many steps will run in parallel.  
 
-While this pipeline is organized in Nextflow, every process is capabale of being used and tested independently of Nextflow as a bash or python script. Execute any python script (with -h) or bash script (without arguments) for detailed instructions on how to run them. The conda environment with all dependencies can be installed with `conda env create -f resouces/virID_environment.yml`.
+**Assembly Mode:**  
+1) Input fastqs are split into a paired file containing interleaved paired reads, and an unpaired file containing unpaired reads. Thus, each sample should be added to this pipeline as a single fastq containing both paired and unpaired reads.  
+2) Reads are assembled with the SPAdes assembler - SPAdes, metaSPAdes, or rnaSPAdes can be specified.  
+3) bwa mem is used to map reads back to contigs.  
+4) The DIAMOND and megablast aligners are used for taxonomic assignment of assembled contigs.  
+5) DIAMOND and megablast output files are translated to a taxonomic output following last-common-ancestor (LCA) calculation for each query contig.  
+6) Contigs are queried with megablast against a nonredundant database of common cloning vectors. Contigs that are assigned to these sequences are flagged.  
+6) DIAMOND and megablast taxonomic outputs and contig count information are merged to a comprehensive taxonomic output, and unassigned contigs are flagged. Counts outputs, one for each DIAMOND and megablast, are generated which display the counts at every taxonomic level. There is a section below that describes the output files in more detail.  
+
+**Read Mode:**  
+1) Input fastqs are split into a paired file containing interleaved paired reads, and an unpaired file containing unpaired reads. Thus, each sample should be added to this pipeline as a single fastq containing both paired and unpaired reads.  
+2) Reads are converted to .fasta format.  
+3) Each read is queried by megablast and DIAMOND.
+4) The megablast and DIAMOND output files are translated to a taxonomic output following last-common-ancestor (LCA) calculation for each query contig.  
+5) A counts output file that lists the number of reads assigned to each taxon at every level is generated from the translated megablast and translated DIAMOND output files. These outfiles are described in depth later in this readme.  
+6) Reads are queried with megablast against a nonredundant database of common cloning vectors. Contigs that are assigned to these sequences are flagged.  
+
+While this pipeline is organized in Nextflow, every process is capabale of being used and tested independently of Nextflow as a bash or python script. Execute any python script (with -h) or bash script (without arguments) for detailed instructions on how to run them. The conda environment with all dependencies can be installed with `conda env create -f resouces/virID_environment.yml`.  
 
 ## Prepare databases
-This workflow requires you do generate two databases: 1) A DIAMOND database for search, 2) A nucleotide blast database for search. You should activate the pipeline conda environment with `conda env create -f resouces/virID_environment.yml` so that you are making the DIAMOND and blast databases with the same version of DIAMOND and blast used by this pipeline.
+This workflow requires you to generate two databases: 1) A DIAMOND database for search, 2) A nucleotide blast database for search. You should activate the pipeline conda environment with `conda env create -f resouces/virID_environment.yml` so that you are making the DIAMOND and blast databases with the same version of DIAMOND and blast used by this pipeline.
 
 A DIAMOND database can be generated by following the DIAMOND [manual](https://github.com/bbuchfink/diamond/raw/master/diamond_manual.pdf). I recommend generating a database using the RefSeq nonredundant protein fastas present at [ftp://ftp.ncbi.nlm.nih.gov/refseq/release/]. When making the DIAMOND database with `diamond makedb` you must use the `--taxonmap` and `--taxonnodes` switches.  
 ```
@@ -63,8 +73,12 @@ In general, all input values and parameters for this script must be entered in t
 **params.out_dir:** Desired output directory. `"output"`  
 **params.reads:** A glob detailing the location of reads to be processed through this pipeline. NOTE, input reads for one sample should be in one fastq. This script will process the fastq into an interleaved (paired) fastq and a separate unpaired fastq. *There should be a single fastq for each input sample.* A value of `"raw_reads/*fastq"` is an appropriate input for this parameter, and will select as input all fastq files in the directory `raw_reads`. Make sure to wrap in quotes! `"raw_data/*fastq"`  
 
-#### Conda
-Change the `cacheDir` value in `nextflow.config` to a directory you'd like to store the virID conda virtual environment. This way, the conda virtual environment only needs to be downloaded once. ``  
+#### Specify workflow strategy  
+**params.assembly_pipeline:** Options are "T" or "F". If marked "T", the pipeline will run in assembly mode. NOTE - only params.assembly_pipeline OR params.reads_pipeline may be marked "T". `"T"`  
+**params.reads_pipeline:** Options are "T" or "F". If marked "T", the pipeline will run in read mode without assembly. **NOTE - only params.assembly_pipeline OR params.reads_pipeline may be marked "T".** `"T"`  
+
+#### Conda  
+**params.conda_env_location:** Location you want the conda virtual environment to be saved to. Change this to somewhere convenient for you. It lets you avoid downloading the conda environment multiple times.  
 
 #### SPAdes
 **params.spades_type:** Options are 'meta', 'rna', and 'regular'. This specifies whether to use metaspades.py, rnaspades.py, or spades.py. `"meta"`  
