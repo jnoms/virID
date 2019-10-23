@@ -131,8 +131,11 @@ workflow read_pipeline {
   get: input_ch
   main:
 
+  // Process read pairs
+  process_read_pairs(input_ch)
+
   // Convert input to fasta
-  fastq_to_fasta(input_ch)
+  fastq_to_fasta(process_read_pairs.out)
 
   // Run DIAMOND
   diamond(fastq_to_fasta.out)

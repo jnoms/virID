@@ -9,7 +9,7 @@ params.source = "diamond"
 //============================================================================//
 process get_counts {
   tag "$sampleID"
-  publishDir "$params.out_dir/counts", mode: "copy"
+  publishDir "${params.out_dir}/${params.source}", mode: "copy"
   beforeScript "module load gcc conda2"
 
   input:
