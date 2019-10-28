@@ -8,13 +8,18 @@ import argparse
 import os
 import pathlib
 
-def generate_heatmap(df, level, non_sample_cols, TOP_NUMBER_OF_ROWS=50, viruses_only=False):
+def generate_heatmap(df, level, non_sample_cols, TOP_NUMBER_OF_ROWS=50, superkingdom="all"):
 
     # Sort for specified level and only viruses if specified
-    if viruses_only == True:
+    if superkingdom == "Virus":
         rows = (df.superkingdom.isin(['sk__Viruses', 'Viruses']) & df.level.isin([level]))
-    else:
+    elif superkingdom == "Bacteria":
+        rows = (df.superkingdom.isin(['sk__Bacteria', 'Bacteria']) & df.level.isin([level]))
+    elif superkingdom == "all":
         rows = (df.level.isin([level]))
+    else:
+        raise ValueError("Superkingdom value must be 'Virus', 'Bacteria', or 'all'." +
+        " You entered {}".format(superkingdom))
 
     df = df[rows]
 
@@ -188,10 +193,14 @@ def main():
 
     # generate heatmaps
     print("Generating heatmaps.")
-    heatmap_viral_genera = generate_heatmap(df, 'genus', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, viruses_only=True)
-    heatmap_viral_species = generate_heatmap(df, 'species', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, viruses_only=True)
-    heatmap_all_genera = generate_heatmap(df, 'genus', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, viruses_only=False)
-    heatmap_all_species = generate_heatmap(df, 'species', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, viruses_only=False)
+    heatmap_viral_genera = generate_heatmap(df, 'genus', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="Virus")
+    heatmap_viral_species = generate_heatmap(df, 'species', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="Virus")
+
+    heatmap_bacteria_genera = generate_heatmap(df, 'genus', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="Bacteria")
+    heatmap_bacteria_species = generate_heatmap(df, 'species', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="Bacteria")
+
+    heatmap_all_genera = generate_heatmap(df, 'genus', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="all")
+    heatmap_all_species = generate_heatmap(df, 'species', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="all")
 
     # Make output dir if needed
     output_directory = os.path.dirname(output_prefix)
@@ -201,8 +210,10 @@ def main():
     print("Writing heatmaps.")
     save_heatmap(heatmap_viral_genera, output_prefix + "_viral_genera." + output_format)
     save_heatmap(heatmap_viral_species, output_prefix + "_viral_species." + output_format)
-    save_heatmap(heatmap_all_genera, output_prefix + "_genera." + output_format)
-    save_heatmap(heatmap_all_species, output_prefix + "_species." + output_format)
+    save_heatmap(heatmap_bacteria_genera, output_prefix + "_bacterial_genera." + output_format)
+    save_heatmap(heatmap_bacteria_species, output_prefix + "_bacterial_species." + output_format)
+    save_heatmap(heatmap_all_genera, output_prefix + "_all_genera." + output_format)
+    save_heatmap(heatmap_all_species, output_prefix + "_all_species." + output_format)
 
     print("Finished.")
 
