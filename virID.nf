@@ -138,16 +138,20 @@ workflow read_pipeline {
   fastq_to_fasta(process_read_pairs.out)
 
   // Run DIAMOND
-  diamond(fastq_to_fasta.out)
-    .filter{ it[1].size() > 0 } \
-    | convert_diamond \
-    | get_counts_diamond
+  if (params.reads_pipeline_no_diamond == "F") {
+    diamond(fastq_to_fasta.out)
+      .filter{ it[1].size() > 0 } \
+      | convert_diamond \
+      | get_counts_diamond
+  }
 
   // Run BLAST
-  blast(fastq_to_fasta.out)
-    .filter{ it[1].size()>0 } \
-    | convert_blast \
-    | get_counts_blast
+  if (params.reads_pipeline_no_blast == "F") {
+    blast(fastq_to_fasta.out)
+      .filter{ it[1].size()>0 } \
+      | convert_blast \
+      | get_counts_blast
+  }
 
   // Run contaminant blast
   blast_contaminant(fastq_to_fasta.out)
@@ -161,9 +165,14 @@ if( (params.assembly_pipeline == "F") && (params.reads_pipeline == "F") ) {
   error "Either params.assembly_pipeline or params.reads_pipeline must \
   be set to T."
 }
-if( (params.assembly_pipeline == "T") && (params.reads_pipeline == "T") ) {
+else if( (params.assembly_pipeline == "T") && (params.reads_pipeline == "T") ) {
   error "Only one of params.assembly_pipeline or params.reads_pipeline must \
   be set to T."
+}
+
+if( (params.reads_pipeline_no_diamond == "T") && (params.reads_pipeline_no_blast == "T") ) {
+  error "Only one of params.reads_pipeline_no_diamond or \
+  params.reads_pipeline_no_blast may be set to 'T'."
 }
 
 //============================================================================//
