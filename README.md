@@ -78,8 +78,8 @@ In general, all input values and parameters for this script must be entered in t
 **params.reads_pipeline:** Options are "T" or "F". If marked "T", the pipeline will run in read mode without assembly. **NOTE - only params.assembly_pipeline OR params.reads_pipeline may be marked "T".** `"T"`  
 
 ### Reads pipeline specific parameters  
-**reads_pipeline_no_diamond:** Options are "T" or "F". If marked "T", and using the reads pipeline, diamond will not be run - only blast. `"F"`  
-**reads_pipeline_no_blast:** Options are "T" or "F". If marked "T", and using the reads pipeline, blast will not be run - only diamond. `"F"`  
+**params.reads_pipeline_no_diamond:** Options are "T" or "F". If marked "T", and using the reads pipeline, diamond will not be run - only blast. `"F"`  
+**params.reads_pipeline_no_blast:** Options are "T" or "F". If marked "T", and using the reads pipeline, blast will not be run - only diamond. `"F"`  
 
 ### Conda  
 **params.conda_env_location:** Location you want the conda virtual environment to be saved to. Change this to somewhere convenient for you. It lets you avoid downloading the conda environment multiple times.  
