@@ -69,28 +69,32 @@ Finally, the get_LCA.py script uses [ETE3](http://etetoolkit.org/docs/latest/tut
 ## Inputs and parameters
 In general, all input values and parameters for this script must be entered in the `nextflow.config` file. Most of the parameters are already filled out for you, but you may want to change some of them.  
 
-#### Input and output
+### Input and output
 **params.out_dir:** Desired output directory. `"output"`  
 **params.reads:** A glob detailing the location of reads to be processed through this pipeline. NOTE, input reads for one sample should be in one fastq. This script will process the fastq into an interleaved (paired) fastq and a separate unpaired fastq. *There should be a single fastq for each input sample.* A value of `"raw_reads/*fastq"` is an appropriate input for this parameter, and will select as input all fastq files in the directory `raw_reads`. Make sure to wrap in quotes! `"raw_data/*fastq"`  
 
-#### Specify workflow strategy  
+### Specify workflow strategy  
 **params.assembly_pipeline:** Options are "T" or "F". If marked "T", the pipeline will run in assembly mode. NOTE - only params.assembly_pipeline OR params.reads_pipeline may be marked "T". `"T"`  
 **params.reads_pipeline:** Options are "T" or "F". If marked "T", the pipeline will run in read mode without assembly. **NOTE - only params.assembly_pipeline OR params.reads_pipeline may be marked "T".** `"T"`  
 
-#### Conda  
+### Reads pipeline specific parameters  
+**reads_pipeline_no_diamond:** Options are "T" or "F". If marked "T", and using the reads pipeline, diamond will not be run - only blast. `"F"`  
+**reads_pipeline_no_blast:** Options are "T" or "F". If marked "T", and using the reads pipeline, blast will not be run - only diamond. `"F"`  
+
+### Conda  
 **params.conda_env_location:** Location you want the conda virtual environment to be saved to. Change this to somewhere convenient for you. It lets you avoid downloading the conda environment multiple times.  
 
-#### SPAdes
+### SPAdes
 **params.spades_type:** Options are 'meta', 'rna', and 'regular'. This specifies whether to use metaspades.py, rnaspades.py, or spades.py. `"meta"`  
 **params.temp_dir:** This specifies the location of the SPAdes temporary directory. `"temp"`  
 **params.spades_min_length:** The minimum contig length that is output from the SPAdes process. Contigs below this length will be filtered out. `300`  
 
-#### DIAMOND
+### DIAMOND
 **params.diamond_database:** Path to the diamond database. Wrap all paths in quotes!   
 **params.diamond_evalue:** The maximum evalue of a match to be reported as an alignment by DIAMOND. In general I am a fan of setting this at 10, which is quite high. Lower values, such as 0.001, are more stringent and have fewer false positives. `"10"`  
 **params.diamond_outfmt:** This dictates the output format from DIAMOND. This is fairly flexible, but generally staxids and bitscore are required. I recommend leaving it at default, though you can add to it no problem. `"6 qseqid stitle sseqid staxids evalue bitscore pident length"`  
 
-#### BLAST
+### BLAST
 **params.blast_database:** Path to the blast nt database. Wrap all paths in quotes!   
 **params.blast_evalue:** The maximum evalue of a match to be reported as an alignment by blast. In general I am a fan of setting this at 10, which is quite high. Lower values, such as 0.001, are more stringent and have fewer false positives. `10`    
 **params.blast_type:** This controls the 'task' switch of blast, and specified whether to run 'megablast', 'dc-megablast', or 'blastn'. I recommend 'megablast', else it will be quite slow. `megablast`  
@@ -101,7 +105,7 @@ In general, all input values and parameters for this script must be entered in t
 **params.blast_restrict_to_taxids:** This parameter lets you limited the blast search to a specified taxonID. This causes an extreme speedup, and is helpful for testing this pipeline. Not compatible with params.blast_ignore_taxids. `"no"`  
 **params.blast_ignore_taxids:** This parameter lets you ignore all hits of a particular taxonID. `"no"`  
 
-#### BLAST/DIAMOND conversion
+### BLAST/DIAMOND conversion
 **params.within_percent_of_top_score:** When finding the LCA of all matches for a given query sequence, this details how close to the maximum bitscore a match must be to be considered in the LCA classification. If this is set at 1, for example, all potential alignments within 1 percent of the highest bitscore for a query sequence will be considered in the LCA classification. **NOTE**: This is limited intrinsically by the DIAMOND -top parameter, which is set at 1. Thus, DIAMOND will only output assignments within 1% of the top bitscore anyway. I will add a switch to change the DIAMOND -top parameter in a future release. `1`  
 **params.taxid_blacklist:** Path to a file containing taxonIDs to be blacklisted. I have included a file in this github repository. Assignments containing one of these taxonIDs will be discarded before LCA calculation. `"$VID/resources/2019-08-09_blacklist.tsv"`  
 **params.diamond_readable_colnames:** These are the more-readable column names that will be reported in the output from DIAMOND. If you change the outfmt, change this line accordingly. `"query_ID seq_title seq_ID taxonID evalue bitscore pident length"`  
@@ -109,7 +113,7 @@ In general, all input values and parameters for this script must be entered in t
 **params.taxonomy_column:** This details which of the colnames contains the taxonID. `"taxonID"`  
 **params.score_column:** This details which of the colnames should be used for calculating the top score. I use bitscore, but you could technically set this as pident or length or evalue to sort by one of those parameters instead. `"bitscore"`  
 
-#### Contaminant blast search
+### Contaminant blast search
 **params.blast_contaminant_database:** Path to the contaminate database. This database is included at resources/vector_contaminant_database, but you need to specify the path here!   
 **params.blast_contaminant_evalue:** Matches with evalues above this will not be reported. I recommend setting this to be pretty stringent. `0.001`  
 **params.blast_contaminant_outfmt:** Outformat. The only thing that really is critical is keeping qseqid as the first column. `"6 qseqid stitle sseqid staxid evalue bitscore pident length"`  
