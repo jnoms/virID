@@ -44,8 +44,8 @@ def generate_heatmap(df, level, non_sample_cols, TOP_NUMBER_OF_ROWS=50, superkin
     # If DF is empty, i.e. no taxa met the conditions, return a notice.
     if len(df) == 0:
         print("The dataframe is of size zero.")
-        print("There may be no viruses, or no taxa of the given level.")
-        print("level: {0}, viruses_only:{1}".format(level, viruses_only))
+        print("There may be no taxa of the superkingdom, or no taxa of the given level.")
+        print("level: {0}, superkingdom:{1}".format(level, superkingdom))
         return ''
 
     # If DF is only one row, can't do clustermap, do regular heatmap
