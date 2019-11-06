@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+#------------------------------------------------------------------------------#
+# Import packages
+#------------------------------------------------------------------------------#
 import pandas as pd
 import pathlib
 import inspect
@@ -8,6 +11,11 @@ ncbi = NCBITaxa()
 import argparse
 import time
 import os
+import csv
+import sys
+
+# Lets input feilds be extremely large.
+csv.field_size_limit(sys.maxsize)
 
 #------------------------------------------------------------------------------#
 # Defining functions
