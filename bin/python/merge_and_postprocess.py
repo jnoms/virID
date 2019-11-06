@@ -5,7 +5,9 @@ Created on Mon Apr  1 18:40:13 2019
 
 @author: jnom
 """
-
+#------------------------------------------------------------------------------#
+# Import packages
+#------------------------------------------------------------------------------#
 import pandas as pd
 import inspect
 import argparse
@@ -15,7 +17,11 @@ import pathlib
 from ete3 import NCBITaxa
 ncbi = NCBITaxa()
 import numpy as np
+import csv
+import sys
 
+# Lets input feilds be extremely large.
+csv.field_size_limit(sys.maxsize)
 
 """
 This script has functions to do the following
