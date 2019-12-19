@@ -8,7 +8,27 @@ import argparse
 import os
 import pathlib
 
-def generate_heatmap(df, level, non_sample_cols, TOP_NUMBER_OF_ROWS=50, superkingdom="all"):
+def str2bool(v):
+    """
+    Function to read in argparse booleans. From Maxim/Knight71 on stackoverflow
+    - see https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
+    """
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+def generate_heatmap(df,
+    level,
+    non_sample_cols,
+    TOP_NUMBER_OF_ROWS=50,
+    superkingdom="all",
+    cluster_samples=True,
+    cluster_taxa=True):
 
     # Sort for specified level and only viruses if specified
     if superkingdom == "Virus":
@@ -68,12 +88,14 @@ def generate_heatmap(df, level, non_sample_cols, TOP_NUMBER_OF_ROWS=50, superkin
                    cmap="Blues",
                    cbar_kws={'label': 'Log10 Number of Reads'},
                    row_colors=network_colors,
-                   yticklabels=True
+                   yticklabels=True,
+                   col_cluster=cluster_samples,
+                   row_cluster=cluster_taxa
                    )
     plt.setp(cluster_map.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
     plt.setp(cluster_map.ax_heatmap.set_yticklabels(cluster_map.ax_heatmap.get_ymajorticklabels(), fontsize = 8))
     plt.setp(cluster_map.ax_heatmap.set_xticklabels(cluster_map.ax_heatmap.get_xmajorticklabels(), fontsize = 8))
-    plt.setp(cluster_map.ax_heatmap.set(xlabel='Samples (Note: It is possible not all are labeled!)', ylabel='Taxon'))
+    plt.setp(cluster_map.ax_heatmap.set(xlabel='Samples (Note: It is possible not all are labeled!)', ylabel='Taxa'))
     return cluster_map
 
 def save_heatmap(heatmap, output_path):
@@ -142,6 +164,28 @@ def main():
         "png", or any other matplotlib acceptable format.
         ''',
     )
+    parser.add_argument(
+        "-c",
+        "--cluster_samples",
+        type=str2bool,
+        required=False,
+        default=True,
+        help='''
+        Whether or not do heirarchecially cluster the samples (columns). True,
+        true, t, and similar iterations of False are acceptable inputs.
+        ''',
+    )
+    parser.add_argument(
+        "-C",
+        "--cluster_taxa",
+        type=str2bool,
+        required=False,
+        default=True,
+        help='''
+        Whether or not do heirarchecially cluster the taxa (rows). True, true,
+        t, and similar iterations of False are acceptable inputs.
+        ''',
+    )
 
 
     args = parser.parse_args()
@@ -151,6 +195,8 @@ def main():
     TOP_NUMBER_OF_ROWS = args.TOP_NUMBER_OF_ROWS
     remove_suffix = args.remove_suffix
     output_format = args.output_format
+    cluster_samples=args.cluster_samples
+    cluster_taxa=args.cluster_taxa
 
     #------------------------------------------------------------------------------#
     # Setting defaults
@@ -193,14 +239,56 @@ def main():
 
     # generate heatmaps
     print("Generating heatmaps.")
-    heatmap_viral_genera = generate_heatmap(df, 'genus', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="Virus")
-    heatmap_viral_species = generate_heatmap(df, 'species', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="Virus")
+    heatmap_viral_genera = generate_heatmap(df,
+                                'genus',
+                                non_sample_cols,
+                                TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS,
+                                superkingdom="Virus",
+                                cluster_samples=cluster_samples,
+                                cluster_taxa=cluster_taxa
+                                )
+    heatmap_viral_species = generate_heatmap(df,
+                                'species',
+                                non_sample_cols,
+                                TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS,
+                                superkingdom="Virus",
+                                cluster_samples=cluster_samples,
+                                cluster_taxa=cluster_taxa
+                                )
 
-    heatmap_bacteria_genera = generate_heatmap(df, 'genus', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="Bacteria")
-    heatmap_bacteria_species = generate_heatmap(df, 'species', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="Bacteria")
+    heatmap_bacteria_genera = generate_heatmap(df,
+                                'genus',
+                                non_sample_cols,
+                                TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS,
+                                superkingdom="Bacteria",
+                                cluster_samples=cluster_samples,
+                                cluster_taxa=cluster_taxa
+                                )
+    heatmap_bacteria_species = generate_heatmap(df,
+                                'species',
+                                non_sample_cols,
+                                TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS,
+                                superkingdom="Bacteria",
+                                cluster_samples=cluster_samples,
+                                cluster_taxa=cluster_taxa
+                                )
 
-    heatmap_all_genera = generate_heatmap(df, 'genus', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="all")
-    heatmap_all_species = generate_heatmap(df, 'species', non_sample_cols, TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS, superkingdom="all")
+    heatmap_all_genera = generate_heatmap(df,
+                            'genus',
+                            non_sample_cols,
+                            TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS,
+                            superkingdom="all",
+                            cluster_samples=cluster_samples,
+                            cluster_taxa=cluster_taxa
+                            )
+    heatmap_all_species = generate_heatmap(df,
+                            'species',
+                            non_sample_cols,
+                            TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS,
+                            superkingdom="all",
+                            cluster_samples=cluster_samples,
+                            cluster_taxa=cluster_taxa
+                            )
 
     # Make output dir if needed
     output_directory = os.path.dirname(output_prefix)
