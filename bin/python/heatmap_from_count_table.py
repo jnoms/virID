@@ -255,6 +255,14 @@ def main():
                                 cluster_samples=cluster_samples,
                                 cluster_taxa=cluster_taxa
                                 )
+    heatmap_viral_family = generate_heatmap(df,
+                                'family',
+                                non_sample_cols,
+                                TOP_NUMBER_OF_ROWS=TOP_NUMBER_OF_ROWS,
+                                superkingdom="Virus",
+                                cluster_samples=cluster_samples,
+                                cluster_taxa=cluster_taxa
+                                )
 
     heatmap_bacteria_genera = generate_heatmap(df,
                                 'genus',
@@ -298,6 +306,7 @@ def main():
     print("Writing heatmaps.")
     save_heatmap(heatmap_viral_genera, output_prefix + "_viral_genera." + output_format)
     save_heatmap(heatmap_viral_species, output_prefix + "_viral_species." + output_format)
+    save_heatmap(heatmap_viral_family, output_prefix + "_viral_family." + output_format)
     save_heatmap(heatmap_bacteria_genera, output_prefix + "_bacterial_genera." + output_format)
     save_heatmap(heatmap_bacteria_species, output_prefix + "_bacterial_species." + output_format)
     save_heatmap(heatmap_all_genera, output_prefix + "_all_genera." + output_format)
