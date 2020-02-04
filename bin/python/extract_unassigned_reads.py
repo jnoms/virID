@@ -205,6 +205,7 @@ def main():
     #--------------------------------------------------------------------------#
     # Main
     #--------------------------------------------------------------------------#
+    print("Starting extract_unassigned_reads.py for {}".format(sample_name))
 
     # First, parse the bam to get a dictionary with mapped reads and a
     # list of unmapped reads.
@@ -228,6 +229,8 @@ def main():
     if metrics != "":
         metrics_output = "{}\t{}\t{}\n".format(sample_name, input_readcount, len(unmapped_reads))
         write_output(metrics_output, metrics, append=True)
+
+    print("Finished.")
 
 if __name__ == '__main__':
     main()
