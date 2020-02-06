@@ -68,7 +68,7 @@ def main():
             The purpose of this script is to extract sequences from a fasta or
             fastq that have IDs that are NOT in the specified column of the
             exclusion file. This saves the resultant sequences to the
-            designated file. Essentially the opposite of seqtk subseq. 
+            designated file. Essentially the opposite of seqtk subseq.
             """)
 
     # Required arguments
@@ -152,7 +152,7 @@ def main():
     passing_fastx = parse_and_exclude(infile, exclusion_list, fastx_type)
 
     # Write outputs
-    print("Writing out to {}".format(passing_fastx))
+    print("Writing out to {}".format(outfile))
     write_output(passing_fastx, outfile, append=False)
     print("Finished.")
 
