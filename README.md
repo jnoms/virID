@@ -1,5 +1,6 @@
 # virID
 Viral Identification and Discovery - A viral characterization pipeline built in [Nextflow](https://www.nextflow.io/).
+https://doi.org/10.1182/bloodadvances.2019001260
 
 ![Pipeline schematic](/resources/images/2019_10_06_virID_workflow.jpg)
 
@@ -161,7 +162,7 @@ Column names include:
 `count`        The total number of reads assigned to that taxon.  
 
 ## Citation
-The paper you should cite when using this program is in progress. For now, please cite this repository.
+Please cite https://doi.org/10.1182/bloodadvances.2019001260
 
 This pipeline is nothing without the excellent programs virID makes use of. Please cite these programs in addition to virID if you use virID in any publication! I'll list them below, in no particular order:  
 SPAdes  
