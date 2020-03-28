@@ -38,12 +38,6 @@ usage() {
                            Default: No log file.
         -s <SAMPLE_ID>  Name of the sample, used for logging purposes.
                            Default: Basename of query.
-        -n <NO_TAX>     Remove 'staxids' from default OUT_FORMAT.
-                        If TRUE, sets default OUT_FORMAT (can be overwritten) to
-                        '6 qseqid stitle sseqid evalue bitscore pident length'.
-                        This is helpful if you want to use a database that
-                        didn't include the taxonomy db's.
-                           Default: FALSE
         "
 }
 
@@ -54,7 +48,7 @@ if [ $# -le 3 ] ; then
 fi
 
 #Setting input
-while getopts d:q:o:m:t:e:f:l:s:n: option ; do
+while getopts d:q:o:m:t:e:f:l:s: option ; do
         case "${option}"
         in
                 d) DATABASE=${OPTARG};;
@@ -66,7 +60,6 @@ while getopts d:q:o:m:t:e:f:l:s:n: option ; do
                 f) OUT_FORMAT=${OPTARG};;
                 l) LOG_FILE=${OPTARG};;
                 s) SAMPLE_ID=${OPTARG};;
-                n) NO_TAX==${OPTARG};;
         esac
 done
 
@@ -78,11 +71,6 @@ TEMP_DIR=${TEMP_DIR:-./diamond_temp}
 EVALUE=${EVALUE:-10}
 OUT_FORMAT=${OUT_FORMAT:-"6 qseqid stitle sseqid staxids evalue bitscore pident length"}
 SAMPLE_ID=${SAMPLE_ID:-$(basename $QUERY)}
-NO_TAX=${NO_TAX:-TRUE}
-
-if [[ $NO_TAX == "FALSE" ]] ; then
-  OUT_FORMAT=${OUT_FORMAT:-"6 qseqid stitle sseqid evalue bitscore pident length"}
-fi
 
 # Calculate DIAMOND block size
 if [[ $MEMORY < 10 ]] ; then
