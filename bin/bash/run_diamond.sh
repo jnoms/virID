@@ -38,6 +38,9 @@ usage() {
                            Default: No log file.
         -s <SAMPLE_ID>  Name of the sample, used for logging purposes.
                            Default: Basename of query.
+        -T <DIAMOND_TYPE> In what mode to run DIAMOND. Options are 'blastx' or
+                        'blastp'.
+                           Default: 'blastx'
         "
 }
 
@@ -48,7 +51,7 @@ if [ $# -le 3 ] ; then
 fi
 
 #Setting input
-while getopts d:q:o:m:t:e:f:l:s: option ; do
+while getopts d:q:o:m:t:e:f:l:s:T: option ; do
         case "${option}"
         in
                 d) DATABASE=${OPTARG};;
@@ -60,6 +63,7 @@ while getopts d:q:o:m:t:e:f:l:s: option ; do
                 f) OUT_FORMAT=${OPTARG};;
                 l) LOG_FILE=${OPTARG};;
                 s) SAMPLE_ID=${OPTARG};;
+                T) DIAMOND_TYPE=${OPTARG};;
         esac
 done
 
@@ -71,12 +75,20 @@ TEMP_DIR=${TEMP_DIR:-./diamond_temp}
 EVALUE=${EVALUE:-10}
 OUT_FORMAT=${OUT_FORMAT:-"6 qseqid stitle sseqid staxids evalue bitscore pident length"}
 SAMPLE_ID=${SAMPLE_ID:-$(basename $QUERY)}
+DIAMOND_TYPE=${DIAMOND_TYPE:-blastx}
 
 # Calculate DIAMOND block size
 if [[ $MEMORY < 10 ]] ; then
   BLOCK=1
 else
   BLOCK=$((MEMORY/10))
+fi
+
+# Set DIAMOND type
+if [[ $DIAMOND_TYPE != "blastx" ]] && [[ $DIAMOND_TYPE != "blastp" ]] ; then
+  echo "DIAMOND type must be 'blastx' or blastp.''"
+  echo "You entered $DIAMOND_TYPE"
+  exit 1
 fi
 
 #------------------------------------------------------------------------------#
@@ -140,7 +152,7 @@ run_diamond() {
   fi
 
   #Running DIAMOND
-  diamond blastx \
+  diamond $DIAMOND_TYPE \
   -d $DATABASE \
   -q $QUERY \
   --more-sensitive \
