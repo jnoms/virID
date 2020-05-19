@@ -190,6 +190,16 @@ def main():
         Path to the optional metrics file.
         '''
         )
+    parser.add_argument(
+        '-c',
+        '--unassigned_contigs_list',
+        type=str,
+        required=False,
+        default="",
+        help='''
+        Path to a list detailing the headers of unassigned contigs.
+        '''
+        )
 
 
 
@@ -201,6 +211,7 @@ def main():
     unassigned_reads_path = args.unassigned_reads_path
     sample_name = args.sample_name
     metrics = args.metrics
+    unassigned_contigs_list = args.unassigned_contigs_list
 
     #--------------------------------------------------------------------------#
     # Main
@@ -213,6 +224,11 @@ def main():
 
     # Get contigs which were unassigned by both megablast and diamond
     unassigned_contigs = parse_contig_assignments(assignment_file_path)
+
+    # If specified, write out list of unassigned contigs
+    if unassigned_contigs_list != "":
+        write_output("\n".join(list(unassigned_contigs)), unassigned_contigs_list)
+
 
     # Move the unassigned reads to the unmapped reads and delete from
     # mapped reads dict
